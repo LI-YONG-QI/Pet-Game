@@ -1,0 +1,10 @@
+artifacts
+
+cache
+
+node_modules
+
+build
+
+# for Mac
+.DS_Store
