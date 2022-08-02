@@ -8,7 +8,6 @@ import "../extensions/ERC3664TextBased.sol";
  * @dev Implementation of the {ERC3664Synthetic} interface.
  */
 abstract contract ERC3664Synthetic is ERC3664TextBased {
-
     struct SynthesizedToken {
         address owner;
         uint256 id;

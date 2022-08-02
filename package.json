@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy:rinkeby": "npx hardhat run --network rinkeby scripts/deploy.js",
+    "deploy:mumbai": "npx hardhat run --network mumbai scripts/deploy.js",
+    "deploy:localhost": "npx hardhat run scripts/deploy.js",
+    "test:Pet": "npx hardhat test test/Pet_test.js",
+    "test:ReceiverContract": "npx hardhat test test/ReceiverContract_test.js --network localhost"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +20,6 @@
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "chai": "^4.3.6",
     "dotenv": "^16.0.1",
-    "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.8",
     "hardhat": "^2.9.6",
     "hardhat-gas-reporter": "^1.0.8"

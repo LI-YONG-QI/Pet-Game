@@ -128,9 +128,8 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
      * @dev See {IERC3664-setPrimaryAttribute}.
      */
     function setPrimaryAttribute(uint256 tokenId, uint256 attrId)
-        public
+        internal
         virtual
-        override
     {
         require(
             _hasAttr(tokenId, attrId),
@@ -193,7 +192,6 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
         uint256 attrId,
         uint256 amount
     ) public virtual override {
-       
         require(
             _attrExists(attrId),
             "ERC3664: attach for nonexistent attribute"

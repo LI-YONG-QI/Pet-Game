@@ -20,34 +20,44 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
+require("hardhat-gas-reporter");
 
 require("dotenv").config();
 
-const privateKey = process.env.PRIVATE_KEY
-const endpoint = process.env.URL
-const etherscanKey = process.env.API_KEY
+const privateKey = process.env.PRIVATE_KEY;
+const endpointRinkeby = process.env.RINKEBY_URL;
+const endpointMumbai = process.env.MUMBAI_URL;
+const rinkebyKey = process.env.RINKEBY_API_KEY;
+const mumbaiKey = process.env.MUMBAI_API_KEY;
 
 module.exports = {
-
   solidity: {
     version: "0.8.11",
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200
-      }
-    }
+        runs: 200,
+      },
+    },
   },
-  
-  networks:{
-    rinkeby:{
-      url: endpoint,
-      accounts: [`0x${privateKey}`]
-    }
+  networks: {
+    rinkeby: {
+      url: endpointRinkeby,
+      accounts: [`0x${privateKey}`],
+    },
+    mumbai: {
+      url: endpointMumbai,
+      accounts: [`0x${privateKey}`],
+    },
   },
 
   etherscan: {
-    apiKey: etherscanKey,
-  },
+    apiKey: {
+      //ethereum
+      rinkeby: rinkebyKey,
 
+      //polygon
+      polygonMumbai: mumbaiKey,
+    },
+  },
 };

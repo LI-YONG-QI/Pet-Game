@@ -14,15 +14,16 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-    const [deployer] = await ethers.getSigners();
-    console.log(`Address deploying the contract --> ${deployer.address}`);
+  const [deployer] = await ethers.getSigners();
+  console.log(`Address deploying the contract --> ${deployer.address}`);
 
-    const Character = await ethers.getContractFactory("Character");
-    const character = await Character.deploy();
-  
-    console.log(`Token Contract address --> ${character.address}`);
+  const Pet = await ethers.getContractFactory("Pet");
+  const pet = await Pet.deploy();
+
+  const Lens = await ethers.getContractFactory("Lens");
+  const lens = await Lens.deploy();
+  console.log(`Token Contract address --> ${lens.address} ${pet.address}`);
 }
-
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
