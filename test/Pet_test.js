@@ -281,7 +281,7 @@ describe("Pet contract test", () => {
             pet
               .connect(userTwo)
               .transferFrom(userTwo.address, user.address, HAT_ONE)
-          );
+          ).not.to.be.reverted;
         });
         it("Change components with two tokens", async () => {
           //Init
