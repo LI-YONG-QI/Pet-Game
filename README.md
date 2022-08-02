@@ -1,20 +1,15 @@
+# Pet Game
 
-# erc3664-contract
-This is Fox ERC3664 test contract
+This is ERC3664 test contract
 
-# Basic Sample Hardhat Project
-
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
+```
+npm install
 ```
 
+```
+npx hardhat compile
+```
+
+```
+npm run test:Pet
+```

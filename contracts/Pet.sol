@@ -272,7 +272,6 @@ contract Pet is
     ) internal virtual {
         _mint(address(this), subId);
         attachWithText(subId, attr, 1, bytes(""));
-        batchAttach(subId, [Friendship, Level], [10, 1]);
         attach(subId, Friendship, 10);
         attach(subId, Level, 1);
         setPrimaryAttribute(subId, attr);
