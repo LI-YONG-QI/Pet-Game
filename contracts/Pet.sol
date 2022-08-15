@@ -32,6 +32,7 @@ contract Pet is
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant ATTACH_ROLE = keccak256("ATTACH_ROLE");
+    bytes32 public constant URI_SETTER = keccak256("ATTACH_ROLE");
 
     uint256 public constant IMMUTABLE_ATTRIBUTE = 5;
 
@@ -46,9 +47,7 @@ contract Pet is
     // variable attributes
     uint256 public constant Level = 7;
     uint256 public constant Species = 8;
-    uint256 public constant Friendship = 9;
-    uint256 public constant Characteristic = 10;
-    uint256 public constant State = 11;
+    uint256 public constant Characteristic = 9;
 
     mapping(uint256 => string) tokenIdToURI;
 
@@ -70,6 +69,7 @@ contract Pet is
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(ATTACH_ROLE, _msgSender());
+        _setupRole(URI_SETTER, _msgSender());
 
         _mintBatch(attrIds, names, symbols, uris);
 
@@ -128,7 +128,10 @@ contract Pet is
         _afterTokenMint(tokenId);
     }
 
-    function setTokenURI(uint256 tokenId, string memory _uri) internal {
+    function setTokenURI(uint256 tokenId, string memory _uri)
+        public
+        onlyRole(URI_SETTER)
+    {
         tokenIdToURI[tokenId] = _uri;
         emit SetTokenURI(msg.sender, tokenId, _uri);
     }
@@ -190,10 +193,10 @@ contract Pet is
                 SynthesizedToken(_msgSender(), subIds[i])
             );
         }
-        setTokenURI(tokenId, _uri);
+        _setTokenURI(tokenId, _uri);
     }
 
-    function separate(uint256 tokenId) public {
+    function separate(uint256 tokenId, string memory _uri) public {
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
             "caller is not token owner nor approved"
@@ -209,6 +212,7 @@ contract Pet is
             _transfer(address(this), subs[i].owner, subs[i].id);
         }
         delete synthesizedTokens[tokenId];
+        _setTokenURI(tokenId, _uri);
     }
 
     function separateOne(
@@ -229,7 +233,7 @@ contract Pet is
         SynthesizedToken storage token = synthesizedTokens[tokenId][idx];
         _transfer(address(this), token.owner, token.id);
         removeAtIndex(synthesizedTokens[tokenId], idx);
-        setTokenURI(tokenId, _uri);
+        _setTokenURI(tokenId, _uri);
     }
 
     function _beforeTokenTransfer(
@@ -272,7 +276,6 @@ contract Pet is
     ) internal virtual {
         _mint(address(this), subId);
         attachWithText(subId, attr, 1, bytes(""));
-        attach(subId, Friendship, 10);
         attach(subId, Level, 1);
         setPrimaryAttribute(subId, attr);
         recordSynthesized(_msgSender(), tokenId, subId);
@@ -317,6 +320,11 @@ contract Pet is
 
     function setIsActive(bool status) public onlyOwner {
         isSalesActive = status;
+    }
+
+    function _setTokenURI(uint256 tokenId, string memory uri) private {
+        tokenIdToURI[tokenId] = uri;
+        emit SetTokenURI(msg.sender, tokenId, uri);
     }
 
     function upgrade(

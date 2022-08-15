@@ -200,6 +200,7 @@ describe("Pet contract test", () => {
           )
             .to.emit(pet, "SetTokenURI")
             .withArgs(user.address, tokenIdOne, updateTokenIdURI);
+
           expect(await pet.ownerOf(tokenId)).to.equal(user.address);
           expect(await pet["balanceOf(address)"](user.address)).to.equal(4);
           expect(await pet.tokenURI(tokenId)).to.equal(updateTokenIdURI);
@@ -394,48 +395,20 @@ describe("Pet contract test", () => {
           }
         });
 
-        it("Friendship of subToken", async () => {
-          expect(
-            await pet["balanceOf(uint256,uint256)"](HAT, Friendship)
-          ).to.equal(10);
-          expect(
-            await pet["balanceOf(uint256,uint256)"](GLASS, Friendship)
-          ).to.equal(10);
-          expect(
-            await pet["balanceOf(uint256,uint256)"](HAND, Friendship)
-          ).to.equal(10);
-          expect(
-            await pet["balanceOf(uint256,uint256)"](PANTS, Friendship)
-          ).to.equal(10);
-          expect(
-            await pet["balanceOf(uint256,uint256)"](CLOTH, Friendship)
-          ).to.equal(10);
-        });
-
-        it("Increase Friendship of subToken", async () => {
-          await expect(userSigner.increase(HAT, Friendship, 2))
-            .to.emit(pet, "TransferSingle")
-            .withArgs(user.address, 0, HAT, Friendship, 2);
-
-          expect(
-            await pet["balanceOf(uint256,uint256)"](HAT, Friendship)
-          ).to.equal(12);
-        });
-
         it("Error if caller of increase() is not approved ", async () => {
           await expect(
             ownerSigner.increase(HAT, Friendship, 2)
           ).to.be.revertedWith("caller is not token owner nor approved");
         });
 
-        it("Increase attr of subToken after separate", async () => {
-          await userSigner.separateOne(tokenId, HAT, updateTokenIdURI);
+        // it("Increase attr of subToken after separate", async () => {
+        //   await userSigner.separateOne(tokenId, HAT, updateTokenIdURI);
 
-          await userSigner.increase(HAT, Friendship, 2);
-          expect(
-            await pet["balanceOf(uint256,uint256)"](HAT, Friendship)
-          ).to.equal(12);
-        });
+        //   await userSigner.increase(HAT, Friendship, 2);
+        //   expect(
+        //     await pet["balanceOf(uint256,uint256)"](HAT, Friendship)
+        //   ).to.equal(12);
+        // });
       });
     });
 
