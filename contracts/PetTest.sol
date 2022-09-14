@@ -5,13 +5,12 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./ERC3664/Synthetic/ERC3664Synthetic.sol";
 import "./ERC3664/Synthetic/ERC3664CrossSynthetic.sol";
 import "./ERC3664/extensions/ERC3664Upgradable.sol";
 import "./ERC3664/extensions/ERC3664Updatable.sol";
 import "./ERC3664/presets/ERC3664Generic.sol";
 import "./ERC3664/utils/StringsUtil.sol";
-import "./IHat.sol";
+import "./Component/IComponentBase.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./ERC2981/ERC2981ContracWideRoyalties.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
@@ -19,7 +18,7 @@ import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 contract PetTest is
     ERC721Enumerable,
     ERC3664Upgradable,
-    ERC3664Synthetic,
+    ERC3664CrossSynthetic,
     ERC3664Updatable,
     Ownable,
     AccessControlEnumerable,
@@ -117,12 +116,12 @@ contract PetTest is
         _setRoyalties(recipient, value);
     }
 
-    function mint(uint256 tokenId, address _address) external payable {
+    function mint(uint256 tokenId) external payable {
         require(isSalesActive, "Not yet");
         require(tokenId <= Supply, "Exceed purchased");
         require(msg.value >= 0.005 ether, "no enough eth to mint");
         _safeMint(msg.sender, tokenId);
-        _afterTokenMint(tokenId, _address);
+        _afterTokenMint(tokenId);
     }
 
     function setTokenURI(uint256 tokenId, string memory _uri)
@@ -154,43 +153,6 @@ contract PetTest is
                     )
                     : "";
         }
-    }
-
-    function combine(
-        uint256 tokenId,
-        uint256[] calldata subIds,
-        string memory _uri
-    ) public {
-        require(ownerOf(tokenId) == _msgSender(), "caller is not token owner");
-        require(
-            primaryAttributeOf(tokenId) == PET_NFT,
-            "only support primary token been combine"
-        );
-
-        for (uint256 i = 0; i < subIds.length; i++) {
-            require(
-                ownerOf(subIds[i]) == _msgSender(),
-                "caller is not sub token owner"
-            );
-            uint256 nft_attr = primaryAttributeOf(subIds[i]);
-            require(
-                nft_attr != PET_NFT,
-                "not support combine between primary token"
-            );
-            for (uint256 j = 0; j < synthesizedTokens[tokenId].length; j++) {
-                uint256 id = synthesizedTokens[tokenId][j].id;
-                require(
-                    nft_attr != primaryAttributeOf(id),
-                    "duplicate sub token type"
-                );
-            }
-
-            _transfer(_msgSender(), address(this), subIds[i]);
-            synthesizedTokens[tokenId].push(
-                SynthesizedToken(_msgSender(), subIds[i])
-            );
-        }
-        _setTokenURI(tokenId, _uri);
     }
 
     function separate(uint256 tokenId, string memory _uri) public {
@@ -229,7 +191,11 @@ contract PetTest is
 
         uint256 idx = findByValue(synthesizedTokens[tokenId], subId);
         SynthesizedToken storage token = synthesizedTokens[tokenId][idx];
-        IHat(component["Hat"]).transferFrom(_address, token.owner, token.id);
+        IComponentBase(component["Hat"]).transferFrom(
+            _address,
+            token.owner,
+            token.id
+        );
 
         removeAtIndex(synthesizedTokens[tokenId], idx);
         _setTokenURI(tokenId, _uri);
@@ -250,10 +216,7 @@ contract PetTest is
         }
     }
 
-    function _afterTokenMint(uint256 tokenId, address _address)
-        internal
-        virtual
-    {
+    function _afterTokenMint(uint256 tokenId) internal virtual {
         attachWithText(tokenId, PET_NFT, 1, bytes("pet"));
         attach(tokenId, Level, 1);
 
@@ -262,10 +225,12 @@ contract PetTest is
         attachWithText(tokenId, Characteristic, 1, bytes("Lazy"));
 
         setPrimaryAttribute(tokenId, PET_NFT);
-        uint256 id = Supply + tokenId * IMMUTABLE_ATTRIBUTE;
+        //uint256 id = Supply + tokenId * IMMUTABLE_ATTRIBUTE;
 
-        IHat(component["Hat"]).mint(0);
-        recordSynthesized(_msgSender(), tokenId, 0);
+        IComponentBase(component["Hat"]).mint(tokenId, 0);
+        IComponentBase(component["Hand"]).mint(tokenId, 0);
+        recordSynthesized(_msgSender(), component["Hat"], tokenId, 0);
+        recordSynthesized(_msgSender(), component["Hand"], tokenId, 0);
     }
 
     function setComponent(string memory name, address _addr) public onlyOwner {
@@ -316,31 +281,5 @@ contract PetTest is
     function _setTokenURI(uint256 tokenId, string memory uri) private {
         tokenIdToURI[tokenId] = uri;
         emit SetTokenURI(msg.sender, tokenId, uri);
-    }
-
-    function upgrade(
-        uint256 _tokenId,
-        uint256 _attrId,
-        uint8 _level
-    ) public virtual override {
-        require(
-            _isApprovedOrOwner(_msgSender(), _tokenId) ||
-                _isApprovedOrOwner(_msgSender(), (subTokens[_tokenId])),
-            "caller is not token owner nor approved"
-        );
-        super.upgrade(_tokenId, _attrId, _level);
-    }
-
-    function increase(
-        uint256 tokenId,
-        uint256 attrId,
-        uint256 amount
-    ) public virtual override {
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId) ||
-                _isApprovedOrOwner(_msgSender(), (subTokens[tokenId])),
-            "caller is not token owner nor approved"
-        );
-        super.increase(tokenId, attrId, amount);
     }
 }

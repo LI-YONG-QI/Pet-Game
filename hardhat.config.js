@@ -41,6 +41,9 @@ module.exports = {
     },
   },
   networks: {
+    hardhat: {
+      allowUnlimitedContractSize: true,
+    },
     rinkeby: {
       url: endpointRinkeby,
       accounts: [`0x${privateKey}`],

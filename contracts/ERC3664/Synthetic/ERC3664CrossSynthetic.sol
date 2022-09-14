@@ -25,6 +25,15 @@ abstract contract ERC3664CrossSynthetic is ERC3664TextBased {
         return synthesizedTokens[tokenId];
     }
 
+    function recordSynthesized(
+        address owner,
+        address token,
+        uint256 tokenId,
+        uint256 subId
+    ) internal virtual {
+        synthesizedTokens[tokenId].push(SynthesizedToken(token, owner, subId));
+    }
+
     function tokenAttributes(uint256 tokenId)
         public
         view
