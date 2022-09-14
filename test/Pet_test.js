@@ -2,63 +2,26 @@ const { assert, expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 
-//It is TDD test
-const _INTERFACE_ID_ERC165 = "0x01ffc9a7";
-const _INTERFACE_ID_ROYALTIES_EIP2981 = "0x2a55205a";
-const _INTERFACE_ID_ERC721 = "0x80ac58cd";
-
-// immutable attributes
-const PET_NFT = 1;
-const HAT_NFT = 2;
-const GLASS_NFT = 3;
-const HAND_NFT = 4;
-const PANTS_NFT = 5;
-const CLOTH_NFT = 6;
-
-// variable attributes
-const Level = 7;
-const Species = 8;
-const Friendship = 9;
-const Characteristic = 10;
-const State = 11;
-
-const attrIds = [
+const {
+  attrIds,
+  names,
+  symbols,
+  uris,
   PET_NFT,
   HAT_NFT,
   GLASS_NFT,
   HAND_NFT,
   PANTS_NFT,
   CLOTH_NFT,
+  Level,
   Species,
-  Friendship,
   Characteristic,
-  State,
-];
-const names = [
-  "PET",
-  "HAT",
-  "GLASS",
-  "HAND",
-  "PANTS",
-  "CLOTH",
-  "SPECIES",
-  "FRIENDSHIP",
-  "CHARACTERISTIC",
-  "STATE",
-];
-const symbols = [
-  "pet",
-  "hat",
-  "glass",
-  "hand",
-  "pants",
-  "cloth",
-  "species",
-  "friendship",
-  "characteristic",
-  "state,",
-];
-const uris = ["", "", "", "", "", "", "", "", "", ""];
+} = require("./helpers/Data");
+
+//It is TDD test
+const _INTERFACE_ID_ERC165 = "0x01ffc9a7";
+const _INTERFACE_ID_ROYALTIES_EIP2981 = "0x2a55205a";
+const _INTERFACE_ID_ERC721 = "0x80ac58cd";
 
 const util = ethers.utils;
 
@@ -345,13 +308,9 @@ describe("Pet contract test", () => {
         it("attributesOf() test", async () => {
           let attrs = await pet.attributesOf(tokenId);
           attrs.map((attr) => {
-            expect([
-              PET_NFT,
-              Level,
-              Species,
-              Friendship,
-              Characteristic,
-            ]).to.include(attr.toNumber());
+            expect([PET_NFT, Level, Species, Characteristic]).to.include(
+              attr.toNumber()
+            );
           });
         });
 
@@ -395,20 +354,12 @@ describe("Pet contract test", () => {
           }
         });
 
-        it("Error if caller of increase() is not approved ", async () => {
-          await expect(
-            ownerSigner.increase(HAT, Friendship, 2)
-          ).to.be.revertedWith("caller is not token owner nor approved");
+        it("Upgrade level with subToken before separate", async () => {
+          await expect(userSigner.upgrade(HAT, Level, 1)).not.to.be.reverted;
+          await expect(userSigner.separateOne(tokenId, HAT, updateTokenIdURI))
+            .not.to.be.reverted;
+          expect(await pet.levelOf(HAT, Level)).to.be.equal(1);
         });
-
-        // it("Increase attr of subToken after separate", async () => {
-        //   await userSigner.separateOne(tokenId, HAT, updateTokenIdURI);
-
-        //   await userSigner.increase(HAT, Friendship, 2);
-        //   expect(
-        //     await pet["balanceOf(uint256,uint256)"](HAT, Friendship)
-        //   ).to.equal(12);
-        // });
       });
     });
 
@@ -430,7 +381,7 @@ describe("Pet contract test", () => {
         ).to.be.true;
       });
 
-      it("has right royalties when mint", async () => {
+      it("Token has right royalties when mint", async () => {
         await ownerSigner.setRoyalties(recipient.address, RATIO);
         await userSigner.mint(tokenId, {
           value: util.parseEther(MINT_PRICE),

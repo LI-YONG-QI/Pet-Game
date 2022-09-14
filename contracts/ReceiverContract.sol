@@ -1,17 +1,30 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "hardhat/console.sol";
 
-contract ReceiverContract is Ownable {
+contract ReceiverContract is Ownable, AccessControl {
     event Deposit(address sender, uint256 amount, uint256 balance);
-    event Royalties(address sender, address publisher, address member);
+    event TransferRoyalties(address sender, uint256 value, address receiver);
 
-    mapping(uint256 => address) memberShip;
+    bytes32 public constant ADMIN = keccak256("Admin");
+    bytes32 public constant MEMBER = keccak256("Member");
+
+    mapping(uint256 => address) memberIdToAddress;
+    mapping(address => uint256) memberAddressToId;
+    mapping(uint256 => uint256) memberRoyalties;
+
     uint256 public currentMemberId = 0;
 
-    constructor(address publisher) {
-        addMember(publisher);
+    constructor(address publisher, uint256 royalties) {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(MEMBER, msg.sender);
+        _setupRole(ADMIN, msg.sender);
+        _setRoleAdmin(MEMBER, ADMIN);
+
+        addMember(publisher, royalties);
+        _grantRole(MEMBER, publisher);
     }
 
     receive() external payable {
@@ -19,41 +32,47 @@ contract ReceiverContract is Ownable {
     }
 
     function memberExists(uint256 _memberId) public view returns (bool) {
-        return (memberShip[_memberId] != address(0));
+        return (memberIdToAddress[_memberId] != address(0));
     }
 
-    function addMember(address _member) public onlyOwner {
-        memberShip[currentMemberId] = _member;
-        currentMemberId++;
+    function addMember(address _member, uint256 royalties)
+        public
+        onlyRole(getRoleAdmin(ADMIN))
+    {
+        memberIdToAddress[currentMemberId] = _member;
+        memberAddressToId[msg.sender] = currentMemberId;
+        memberRoyalties[currentMemberId] = royalties;
+
+        _grantRole(MEMBER, _member);
         currentMemberId++;
     }
 
     function getMemberAddress(uint256 _memberId) public view returns (address) {
         require(memberExists(_memberId), "The member is not exist");
-        return memberShip[_memberId];
+        return memberIdToAddress[_memberId];
     }
 
-    function processRoyalties(
-        uint256 _memberId,
-        uint256 memberAmount,
-        uint256 publisherAmount,
-        uint256 value //add ...
-    ) public payable onlyOwner {
+    function getMemberID(address user) public view returns (uint256) {
+        uint256 memberId = memberAddressToId[user];
+        require(memberExists(memberId), "The member is not exist");
+        return memberId;
+    }
+
+    function getMemberRoyalties(uint256 _memberId)
+        public
+        view
+        returns (uint256)
+    {
         require(memberExists(_memberId), "The member is not exist");
+        return memberRoyalties[_memberId];
+    }
 
-        //sent value to publisher
-        (bool sentToPublisher, ) = payable(memberShip[0]).call{
-            value: (value * publisherAmount) / 10000
-        }("");
+    function processRoyalties(uint256 _memberId) public onlyRole(ADMIN) {
+        uint256 _value = (address(this).balance *
+            getMemberRoyalties(_memberId)) / 10000;
+        (bool success, ) = getMemberAddress(_memberId).call{value: _value}("");
 
-        //sent value to member
-        (bool sentToMember, ) = memberShip[_memberId].call{
-            value: (value * memberAmount) / 10000
-        }("");
-
-        require(sentToPublisher, "Publisher:Failed to send Ether");
-        require(sentToMember, "Member:Failed to send Ether");
-
-        emit Royalties(msg.sender, memberShip[0], memberShip[_memberId]);
+        require(success, "Failed to send Ether");
+        emit TransferRoyalties(msg.sender, _value, getMemberAddress(_memberId));
     }
 }

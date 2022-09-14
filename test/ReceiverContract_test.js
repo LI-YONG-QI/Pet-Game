@@ -1,12 +1,16 @@
 const { expect } = require("chai");
 const { defaultAbiCoder } = require("ethers/lib/utils");
-const { BigNumber } = require("ethers");
+const { utils } = require("ethers");
 const { ethers } = require("hardhat");
+const { attrIds, names, symbols, uris } = require("./helpers/Data");
 
 describe("Receiver contract test", () => {
+  //ethers.utils.id() use to string convert to bytes32 with keccak256
+  const MEMBER = utils.id("Member");
+  const ADMIN = utils.id("Admin");
+
   const SLAES_PRICE = 10000;
   const provider = ethers.provider;
-  const util = ethers.utils;
 
   const fromExchange = {
     memberId: 1,
@@ -15,15 +19,17 @@ describe("Receiver contract test", () => {
   };
 
   beforeEach(async () => {
-    [owner, m1] = await ethers.getSigners();
+    [owner, user, market] = await ethers.getSigners();
     const ReceiverContract = await ethers.getContractFactory(
       "ReceiverContract"
     );
-    const Lens = await ethers.getContractFactory("Lens");
+    const Pet2 = await ethers.getContractFactory("Pet2");
     const Pet = await ethers.getContractFactory("Pet");
-    lens = await Lens.deploy();
-    pet = await Pet.deploy();
-    receiverContract = await ReceiverContract.deploy(pet.address);
+    pet2 = await Pet2.deploy();
+    pet = await Pet.deploy(attrIds, names, symbols, uris);
+    receiverContract = await ReceiverContract.deploy(pet.address, 1000);
+
+    ownerSigner = receiverContract.connect(owner);
   });
   describe("Member", async () => {
     it("Member is exist", async () => {
@@ -39,59 +45,65 @@ describe("Receiver contract test", () => {
 
     it("Add one member", async () => {
       expect(await receiverContract.memberExists(1)).to.be.equal(false);
-      expect(await receiverContract.addMember(lens.address));
+      await receiverContract.addMember(pet2.address, 500);
       expect(await receiverContract.memberExists(1)).to.be.equal(true);
+
+      expect(await receiverContract.hasRole(MEMBER, pet2.address)).to.be.equal(
+        true
+      );
     });
 
     it("Owner deposit ether to contract", async () => {
       let tx = {
         to: receiverContract.address,
-        value: util.parseEther("1"),
+        value: utils.parseEther("1"),
       };
       let balance = await provider.getBalance(receiverContract.address);
-      expect("0.0").to.be.equal(util.formatEther(balance));
+      expect("0.0").to.be.equal(utils.formatEther(balance));
 
       await expect(await owner.sendTransaction(tx))
         .to.emit(receiverContract, "Deposit")
-        .withArgs(
-          owner.address,
-          ethers.utils.parseEther("1"),
-          ethers.utils.parseEther("1")
-        );
-      await expect(await m1.sendTransaction(tx))
+        .withArgs(owner.address, utils.parseEther("1"), utils.parseEther("1"));
+      await expect(await user.sendTransaction(tx))
         .to.emit(receiverContract, "Deposit")
-        .withArgs(
-          m1.address,
-          ethers.utils.parseEther("1"),
-          ethers.utils.parseEther("2")
-        );
+        .withArgs(user.address, utils.parseEther("1"), utils.parseEther("2"));
     });
 
     it("Process royalties", async () => {
-      //Deposit
       let tx = {
         to: receiverContract.address,
-        value: util.parseEther("1"),
+        value: 10000,
       };
-      await owner.sendTransaction(tx);
+      await expect(market.sendTransaction(tx)).not.to.be.reverted;
 
-      await receiverContract.addMember(lens.address);
-      await expect(
-        receiverContract.processRoyalties(
-          fromExchange.memberId,
-          fromExchange.memberAmout,
-          fromExchange.publisherAmount,
-          SLAES_PRICE
-        )
-      )
-        .to.emit(receiverContract, "Royalties")
-        .withArgs(owner.address, pet.address, lens.address);
+      await expect(ownerSigner.processRoyalties(0))
+        .to.emit(receiverContract, "TransferRoyalties")
+        .withArgs(owner.address, 1000, pet.address);
 
       let balance = await provider.getBalance(pet.address);
-      expect("4000").to.be.equal(balance);
+      expect(balance).to.be.equal("1000");
+    });
 
-      balance = await provider.getBalance(lens.address);
-      expect("6000").to.be.equal(balance);
+    it("Grant member role with admin", async () => {
+      await expect(ownerSigner.addMember(pet2.address, 500)).not.to.be.reverted;
+      await expect(ownerSigner.grantRole(ADMIN, pet2.address)).not.to.be
+        .reverted;
+      expect(await receiverContract.hasRole(ADMIN, pet2.address)).to.be.equal(
+        true
+      );
+    });
+    it("Revoke member role with admin", async () => {
+      await expect(ownerSigner.addMember(pet2.address, 500)).not.to.be.reverted;
+      await expect(ownerSigner.grantRole(ADMIN, pet2.address)).not.to.be
+        .reverted;
+      expect(await receiverContract.hasRole(ADMIN, pet2.address)).to.be.equal(
+        true
+      );
+      await expect(ownerSigner.revokeRole(ADMIN, pet2.address)).not.to.be
+        .reverted;
+      expect(await receiverContract.hasRole(ADMIN, pet2.address)).to.be.equal(
+        false
+      );
     });
   });
 });

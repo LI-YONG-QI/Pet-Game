@@ -8,12 +8,14 @@
     "deploy:rinkeby": "npx hardhat run --network rinkeby scripts/deploy.js",
     "deploy:mumbai": "npx hardhat run --network mumbai scripts/deploy.js",
     "deploy:localhost": "npx hardhat run scripts/deploy.js",
-    "test:Pet": "npx hardhat test test/Pet_test.js",
-    "test:ReceiverContract": "npx hardhat test test/ReceiverContract_test.js --network localhost"
+    "test:Pet": "npx hardhat test test/Pet_test.js --network localhost",
+    "test:Hat":"npx hardhat test test/Hat_test.js --network localhost",
+    "test:ReceiverContract": "npx hardhat test test/ReceiverContract_test.js --network localhost",
+    "test:Pet_ModularTest": "npx hardhat test test/Pet_ModularTest.js --network localhost"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",

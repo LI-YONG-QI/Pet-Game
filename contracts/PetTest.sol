@@ -2,21 +2,21 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./ERC3664/Synthetic/ERC3664Synthetic.sol";
+import "./ERC3664/Synthetic/ERC3664CrossSynthetic.sol";
 import "./ERC3664/extensions/ERC3664Upgradable.sol";
 import "./ERC3664/extensions/ERC3664Updatable.sol";
 import "./ERC3664/presets/ERC3664Generic.sol";
 import "./ERC3664/utils/StringsUtil.sol";
+import "./IHat.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "hardhat/console.sol";
 import "./ERC2981/ERC2981ContracWideRoyalties.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
-contract Pet is
+contract PetTest is
     ERC721Enumerable,
     ERC3664Upgradable,
     ERC3664Synthetic,
@@ -39,11 +39,6 @@ contract Pet is
 
     // immutable attributes
     uint256 public constant PET_NFT = 1;
-    uint256 public constant HAT_NFT = 2;
-    uint256 public constant GLASS_NFT = 3;
-    uint256 public constant HAND_NFT = 4;
-    uint256 public constant PANTS_NFT = 5;
-    uint256 public constant CLOTH_NFT = 6;
 
     // variable attributes
     uint256 public constant Level = 7;
@@ -51,6 +46,7 @@ contract Pet is
     uint256 public constant Characteristic = 9;
 
     mapping(uint256 => string) tokenIdToURI;
+    mapping(string => address) component;
 
     string private baseURI =
         "https://ipfs.io/ipfs/QmVxhYesuZHBqJPa3ZNRVBxJW53kLJS1KiuLfWfd5HQGvS/";
@@ -121,12 +117,12 @@ contract Pet is
         _setRoyalties(recipient, value);
     }
 
-    function mint(uint256 tokenId) external payable {
+    function mint(uint256 tokenId, address _address) external payable {
         require(isSalesActive, "Not yet");
         require(tokenId <= Supply, "Exceed purchased");
         require(msg.value >= 0.005 ether, "no enough eth to mint");
         _safeMint(msg.sender, tokenId);
-        _afterTokenMint(tokenId);
+        _afterTokenMint(tokenId, _address);
     }
 
     function setTokenURI(uint256 tokenId, string memory _uri)
@@ -219,7 +215,8 @@ contract Pet is
     function separateOne(
         uint256 tokenId,
         uint256 subId,
-        string memory _uri
+        string memory _uri,
+        address _address
     ) public {
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
@@ -232,7 +229,8 @@ contract Pet is
 
         uint256 idx = findByValue(synthesizedTokens[tokenId], subId);
         SynthesizedToken storage token = synthesizedTokens[tokenId][idx];
-        _transfer(address(this), token.owner, token.id);
+        IHat(component["Hat"]).transferFrom(_address, token.owner, token.id);
+
         removeAtIndex(synthesizedTokens[tokenId], idx);
         _setTokenURI(tokenId, _uri);
     }
@@ -252,7 +250,10 @@ contract Pet is
         }
     }
 
-    function _afterTokenMint(uint256 tokenId) internal virtual {
+    function _afterTokenMint(uint256 tokenId, address _address)
+        internal
+        virtual
+    {
         attachWithText(tokenId, PET_NFT, 1, bytes("pet"));
         attach(tokenId, Level, 1);
 
@@ -263,23 +264,12 @@ contract Pet is
         setPrimaryAttribute(tokenId, PET_NFT);
         uint256 id = Supply + tokenId * IMMUTABLE_ATTRIBUTE;
 
-        mintSubToken(HAT_NFT, tokenId, id + 1);
-        mintSubToken(GLASS_NFT, tokenId, id + 2);
-        mintSubToken(HAND_NFT, tokenId, id + 3);
-        mintSubToken(PANTS_NFT, tokenId, id + 4);
-        mintSubToken(CLOTH_NFT, tokenId, id + 5);
+        IHat(component["Hat"]).mint(0);
+        recordSynthesized(_msgSender(), tokenId, 0);
     }
 
-    function mintSubToken(
-        uint256 attr,
-        uint256 tokenId,
-        uint256 subId
-    ) internal virtual {
-        _mint(address(this), subId);
-        attachWithText(subId, attr, 1, bytes(""));
-        attach(subId, Level, 1);
-        setPrimaryAttribute(subId, attr);
-        recordSynthesized(_msgSender(), tokenId, subId);
+    function setComponent(string memory name, address _addr) public onlyOwner {
+        component[name] = _addr;
     }
 
     function findByValue(SynthesizedToken[] storage values, uint256 value)
