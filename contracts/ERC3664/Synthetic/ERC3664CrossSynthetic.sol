@@ -3,24 +3,22 @@
 pragma solidity ^0.8.0;
 
 import "../extensions/ERC3664TextBased.sol";
+import {SyntheticData} from "../utils/SyntheticData.sol";
 
 /**
  * @dev Implementation of the {ERC3664CrossSynthetic} interface.
  */
 abstract contract ERC3664CrossSynthetic is ERC3664TextBased {
-    struct SynthesizedToken {
-        address token;
-        address owner;
-        uint256 id;
-    }
-
     // mainToken => SynthesizedToken
-    mapping(uint256 => SynthesizedToken[]) public synthesizedTokens;
+    mapping(uint256 => SyntheticData.SynthesizedToken[])
+        public synthesizedTokens;
+
+    mapping(string => address) components;
 
     function getSynthesizedTokens(uint256 tokenId)
         public
         view
-        returns (SynthesizedToken[] memory)
+        returns (SyntheticData.SynthesizedToken[] memory)
     {
         return synthesizedTokens[tokenId];
     }
@@ -31,7 +29,9 @@ abstract contract ERC3664CrossSynthetic is ERC3664TextBased {
         uint256 tokenId,
         uint256 subId
     ) internal virtual {
-        synthesizedTokens[tokenId].push(SynthesizedToken(token, owner, subId));
+        synthesizedTokens[tokenId].push(
+            SyntheticData.SynthesizedToken(token, owner, subId)
+        );
     }
 
     function tokenAttributes(uint256 tokenId)
@@ -75,7 +75,9 @@ abstract contract ERC3664CrossSynthetic is ERC3664TextBased {
         returns (bytes memory)
     {
         bytes memory data = "";
-        SynthesizedToken[] storage sTokens = synthesizedTokens[tokenId];
+        SyntheticData.SynthesizedToken[] storage sTokens = synthesizedTokens[
+            tokenId
+        ];
         for (uint256 i = 0; i < sTokens.length; i++) {
             if (data.length > 0) {
                 data = abi.encodePacked(data, ",");
@@ -83,5 +85,9 @@ abstract contract ERC3664CrossSynthetic is ERC3664TextBased {
             data = abi.encodePacked(data, tokenAttributes(sTokens[i].id));
         }
         return data;
+    }
+
+    function setComponents(string memory name, address _addr) public {
+        components[name] = _addr;
     }
 }

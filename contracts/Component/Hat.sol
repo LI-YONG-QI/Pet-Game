@@ -10,7 +10,7 @@ import "./ComponentBase.sol";
 contract Hat is ComponentBase, ERC3664Upgradable {
     uint8 public constant LEVEL = 2;
 
-    constructor() ComponentBase("HAT", "hat") {
+    constructor() ComponentBase("HAT", "hat", "HatComponent") {
         mintWithLevel(LEVEL, "LEVEL", "level", "", 10);
     }
 

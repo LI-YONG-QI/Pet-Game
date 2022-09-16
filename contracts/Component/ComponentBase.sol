@@ -3,11 +3,19 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "../ERC3664/ERC3664.sol";
 import "../ERC3664/extensions/ERC3664Upgradable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ERC3664TextBased} from "../ERC3664/extensions/ERC3664TextBased.sol";
 
-contract ComponentBase is ERC721Enumerable, ERC3664 {
+contract ComponentBase is ERC721Enumerable, ERC3664, ERC3664TextBased, Ownable {
+    using Strings for uint256;
+
     uint8 public constant PRIMARY = 1;
+    string public primaryText;
+
+    string public baseURI;
 
     struct subToken {
         address primaryToken;
@@ -16,10 +24,12 @@ contract ComponentBase is ERC721Enumerable, ERC3664 {
 
     mapping(uint256 => subToken) public subTokens;
 
-    constructor(string memory _name, string memory _symbol)
-        ERC721("COMPONENT", "component")
-        ERC3664("")
-    {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        string memory text
+    ) ERC721("COMPONENT", "component") ERC3664("") {
+        primaryText = text;
         _mint(PRIMARY, _name, _symbol, "");
     }
 
@@ -35,7 +45,7 @@ contract ComponentBase is ERC721Enumerable, ERC3664 {
 
     function mint(uint256 primaryTokenId, uint256 tokenId) public virtual {
         _mint(msg.sender, tokenId);
-        attach(tokenId, PRIMARY, 1);
+        attachWithText(tokenId, PRIMARY, 1, bytes(primaryText));
         setPrimaryAttribute(tokenId, PRIMARY);
         recordSubTokens(tokenId, msg.sender, primaryTokenId);
     }
@@ -54,5 +64,32 @@ contract ComponentBase is ERC721Enumerable, ERC3664 {
         returns (subToken memory)
     {
         return subTokens[tokenId];
+    }
+
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseURI;
+    }
+
+    function setBaseURI(string memory newURI) public onlyOwner {
+        baseURI = newURI;
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override
+        returns (string memory)
+    {
+        string memory currentBaseURI = _baseURI();
+        return
+            bytes(currentBaseURI).length > 0
+                ? string(
+                    abi.encodePacked(
+                        currentBaseURI,
+                        tokenId.toString(),
+                        ".json"
+                    )
+                )
+                : "";
     }
 }

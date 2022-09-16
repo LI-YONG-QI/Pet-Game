@@ -12,7 +12,7 @@ describe("Component of Hat test", () => {
 
   describe("Basic test", async () => {
     it("Mint", async () => {
-      await expect(hat.mint(0)).not.to.be.reverted;
+      await hat.mint(0, 0);
       expect(await hat.ownerOf(0)).to.equal(owner.address);
     });
   });

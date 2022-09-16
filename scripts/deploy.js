@@ -3,7 +3,16 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
+const { ethers } = require("hardhat");
 const hre = require("hardhat");
+
+const {
+  attrIds,
+  names,
+  symbols,
+  uris,
+  attrBaseURI,
+} = require("../contracts/helpers/Data");
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -17,12 +26,26 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   console.log(`Address deploying the contract --> ${deployer.address}`);
 
-  const Pet = await ethers.getContractFactory("Pet");
-  const pet = await Pet.deploy();
+  const SyntheticLogic = await ethers.getContractFactory("SyntheticLogic");
+  const syntheticLogic = await SyntheticLogic.deploy();
 
-  const Lens = await ethers.getContractFactory("Lens");
-  const lens = await Lens.deploy();
-  console.log(`Token Contract address --> ${lens.address} ${pet.address}`);
+  console.log(syntheticLogic.address);
+
+  const Pet = await ethers.getContractFactory("Pet", {
+    libraries: {
+      SyntheticLogic: syntheticLogic.address,
+    },
+  });
+  const pet = await Pet.deploy(attrIds, names, symbols, uris, attrBaseURI);
+  console.log(`Token Contract address --> ${pet.address}`);
+
+  const Hat = await ethers.getContractFactory("Hat");
+  const hat = await Hat.deploy(pet.address);
+  console.log(`Token Contract address --> ${hat.address}`);
+
+  const Hand = await ethers.getContractFactory("Hand");
+  const hand = await Hand.deploy(pet.address);
+  console.log(`Token Contract address --> ${hand.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
