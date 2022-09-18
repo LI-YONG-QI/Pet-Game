@@ -29,8 +29,6 @@ async function main() {
   const SyntheticLogic = await ethers.getContractFactory("SyntheticLogic");
   const syntheticLogic = await SyntheticLogic.deploy();
 
-  console.log(syntheticLogic.address);
-
   const Pet = await ethers.getContractFactory("Pet", {
     libraries: {
       SyntheticLogic: syntheticLogic.address,
@@ -38,14 +36,53 @@ async function main() {
   });
   const pet = await Pet.deploy(attrIds, names, symbols, uris, attrBaseURI);
   console.log(`Token Contract address --> ${pet.address}`);
+  await pet.deployTransaction.wait(5);
+  try {
+    console.log("Verifying contract...");
+    await hre.run("verify:verify", {
+      address: pet.address,
+      contract: "contracts/Pet.sol:Pet",
+      constructorArguments: [attrIds, names, symbols, uris, attrBaseURI],
+    });
+  } catch (err) {
+    if (err.message.includes("Reason: Already Verified")) {
+      console.log("Contract is already verified!");
+    }
+  }
 
   const Hat = await ethers.getContractFactory("Hat");
-  const hat = await Hat.deploy(pet.address);
-  console.log(`Token Contract address --> ${hat.address}`);
+  const hat = await Hat.deploy();
+  console.log(`Hat Contract address --> ${hat.address}`);
+  await hat.deployTransaction.wait(5);
+  try {
+    console.log("Verifying contract...");
+    await hre.run("verify:verify", {
+      address: hat.address,
+      contract: "contracts/Component/Hat.sol:Hat",
+      constructorArguments: [],
+    });
+  } catch (err) {
+    if (err.message.includes("Reason: Already Verified")) {
+      console.log("Contract is already verified!");
+    }
+  }
 
   const Hand = await ethers.getContractFactory("Hand");
-  const hand = await Hand.deploy(pet.address);
-  console.log(`Token Contract address --> ${hand.address}`);
+  const hand = await Hand.deploy();
+  console.log(`Hand Contract address --> ${hand.address}`);
+  await hand.deployTransaction.wait(5);
+  try {
+    console.log("Verifying contract...");
+    await hre.run("verify:verify", {
+      address: hand.address,
+      contract: "contracts/Component/Hand.sol:Hand",
+      constructorArguments: [],
+    });
+  } catch (err) {
+    if (err.message.includes("Reason: Already Verified")) {
+      console.log("Contract is already verified!");
+    }
+  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

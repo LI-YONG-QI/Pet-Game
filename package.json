@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy:rinkeby": "npx hardhat run --network rinkeby scripts/deploy.js",
-    "deploy:mumbai": "npx hardhat run --network mumbai scripts/deploy.js",
-    "deploy:localhost": "npx hardhat run --network localhost scripts/deploy.js",
+    "deploy:rinkeby": "npx hardhat run --network rinkeby scripts/full-deploy-verify.js",
+    "deploy:mumbai": "npx hardhat run --network mumbai scripts/full-deploy-verify.js",
+    "deploy:localhost": "npx hardhat run --network localhost scripts/full-deploy-verify.js",
+    "deploy:pet-mumbai": "npx hardhat run --network mumbai scripts/pet-deploy-verify.js",
     "test:Pet": "npx hardhat test test/Pet_test.js --network localhost",
     "test:Hat":"npx hardhat test test/Hat_test.js --network localhost",
     "test:ReceiverContract": "npx hardhat test test/ReceiverContract_test.js --network localhost",
