@@ -10,7 +10,7 @@
     "deploy:localhost": "npx hardhat run --network localhost scripts/full-deploy-verify.js",
     "deploy:pet-mumbai": "npx hardhat run --network mumbai scripts/pet-deploy-verify.js",
     "test:Pet": "npx hardhat test test/Pet_test.js --network localhost",
-    "test:Hat":"npx hardhat test test/Hat_test.js --network localhost",
+    "test:Hat": "npx hardhat test test/Hat_test.js --network localhost",
     "test:ReceiverContract": "npx hardhat test test/ReceiverContract_test.js --network localhost",
     "test:Pet_ModularTest": "npx hardhat test test/Pet_ModularTest.js --network localhost"
   },
@@ -19,7 +19,6 @@
   "license": "MIT",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",
-    "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "chai": "^4.3.6",
     "dotenv": "^16.0.1",
@@ -28,6 +27,7 @@
     "hardhat-gas-reporter": "^1.0.8"
   },
   "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "^3.0.1",
     "@openzeppelin/contracts": "^4.6.0",
     "chai-as-promised": "^7.1.1"
   }

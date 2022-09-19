@@ -9,13 +9,13 @@ async function main() {
   const hat = await Hat.deploy();
   console.log(`Token Contract address --> ${hat.address}`);
 
-  await hat.deployTransaction.wait(5);
+  //await hat.deployTransaction.wait(5);
 
-  await hre.run("verify:verify", {
-    address: hat.address,
-    contract: "contracts/Component/Hat.sol:Hat",
-    constructorArguments: [],
-  });
+  // await hre.run("verify:verify", {
+  //   address: hat.address,
+  //   contract: "contracts/Component/Hat.sol:Hat",
+  //   constructorArguments: [],
+  // });
 }
 
 main()
