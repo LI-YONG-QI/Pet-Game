@@ -28,6 +28,23 @@ async function main() {
 
   const SyntheticLogic = await ethers.getContractFactory("SyntheticLogic");
   const syntheticLogic = await SyntheticLogic.deploy();
+  await syntheticLogic.deployed();
+  console.log(`SyntheticLogic Contract address --> ${syntheticLogic.address}`);
+  await syntheticLogic.deployTransaction.wait(5);
+  try {
+    console.log("Verifying SyntheticLogic contract...");
+    await hre.run("verify:verify", {
+      address: syntheticLogic.address,
+      contract: "contracts/libraries/SyntheticLogic.sol:SyntheticLogic",
+      constructorArguments: [],
+    });
+  } catch (err) {
+    if (err.message.includes("Reason: Already Verified")) {
+      console.log("Contract is already verified!");
+    } else {
+      console.error(err);
+    }
+  }
 
   const Pet = await ethers.getContractFactory("Pet", {
     libraries: {
