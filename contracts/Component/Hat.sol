@@ -26,12 +26,8 @@ contract Hat is ComponentBase, ERC3664Upgradable {
             super.supportsInterface(interfaceId);
     }
 
-    function mint(uint256 primaryTokenId, uint256 tokenId)
-        public
-        virtual
-        override
-    {
-        super.mint(primaryTokenId, tokenId);
-        attach(tokenId, LEVEL, 1);
+    function mint() public virtual override {
+        super.mint();
+        attach(currentTokenId, LEVEL, 1);
     }
 }

@@ -14,6 +14,9 @@ abstract contract ERC3664CrossSynthetic is ERC3664TextBased {
         public synthesizedTokens;
 
     mapping(string => address) components;
+    mapping(uint256 => string) componentsName;
+
+    uint256 public componentsAmount = 0;
 
     function getSynthesizedTokens(uint256 tokenId)
         public
@@ -88,6 +91,8 @@ abstract contract ERC3664CrossSynthetic is ERC3664TextBased {
     }
 
     function setComponents(string memory name, address _addr) public {
+        componentsAmount++;
         components[name] = _addr;
+        componentsName[componentsAmount] = name;
     }
 }
