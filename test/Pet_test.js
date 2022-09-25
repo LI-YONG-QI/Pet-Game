@@ -42,7 +42,7 @@ describe("Pet contract test", () => {
   let pet;
 
   beforeEach(async () => {
-    [owner, user, userTwo, recipient] = await ethers.getSigners();
+    [owner, uriSetter, user, userTwo, recipient] = await ethers.getSigners();
 
     const SyntheticLogic = await ethers.getContractFactory("SyntheticLogic");
     const syntheticLogic = await SyntheticLogic.deploy();
@@ -60,12 +60,13 @@ describe("Pet contract test", () => {
     const Hand = await ethers.getContractFactory("Hand");
     hand = await Hand.deploy();
 
+    uriSetterSigner = pet.connect(uriSetter);
     userSigner = pet.connect(user);
     ownerSigner = pet.connect(owner);
 
     await pet.setComponents("Hat", hat.address);
     await pet.setComponents("Hand", hand.address);
-    await pet.grantRole(URI_SETTER, user.address);
+    await pet.grantRole(URI_SETTER, uriSetter.address);
 
     await hat.setBaseURI(hatBaseURI);
     await hat.connect(user).setApprovalForAll(pet.address, true);
@@ -148,7 +149,7 @@ describe("Pet contract test", () => {
         expect(await pet.primaryAttributeOf(tokenId)).to.equal(PET_NFT);
 
         await expect(
-          userSigner.separateOne(
+          uriSetterSigner.separateOne(
             tokenId,
             hatTokenId,
             hat.address,
@@ -159,7 +160,7 @@ describe("Pet contract test", () => {
           .withArgs(pet.address, user.address, hatTokenId);
 
         await expect(
-          userSigner.separateOne(
+          uriSetterSigner.separateOne(
             _tokenId,
             _hatTokenId,
             hat.address,
@@ -167,7 +168,7 @@ describe("Pet contract test", () => {
           )
         )
           .to.emit(pet, "SetTokenURI")
-          .withArgs(user.address, _tokenId, updateTokenURI);
+          .withArgs(uriSetter.address, _tokenId, updateTokenURI);
 
         expect(await pet.ownerOf(tokenId)).to.equal(user.address);
         expect(await pet["balanceOf(address)"](user.address)).to.equal(2);
@@ -195,14 +196,14 @@ describe("Pet contract test", () => {
       // });
 
       it("Error if execute separateOne() when subToken is separated", async () => {
-        await userSigner.separateOne(
+        await uriSetterSigner.separateOne(
           tokenId,
           hatTokenId,
           hat.address,
           updateTokenURI
         );
         await expect(
-          userSigner.separateOne(
+          uriSetterSigner.separateOne(
             tokenId,
             hatTokenId,
             hat.address,
@@ -216,7 +217,7 @@ describe("Pet contract test", () => {
         expect(await hat.tokenURI(hatTokenId)).to.equal(hatBaseURI + "0.json");
 
         //after
-        await userSigner.separateOne(
+        await uriSetterSigner.separateOne(
           tokenId,
           hatTokenId,
           hat.address,
@@ -268,7 +269,7 @@ describe("Pet contract test", () => {
           value: util.parseEther(MINT_PRICE),
         });
 
-        await userSigner.separateOne(
+        await uriSetterSigner.separateOne(
           _tokenId,
           _hatTokenId,
           hat.address,
@@ -284,7 +285,7 @@ describe("Pet contract test", () => {
       it("Change components with two tokens", async () => {
         //Init
         expect(await hat.ownerOf(_hatTokenId)).to.equal(user.address);
-        await userSigner.separateOne(
+        await uriSetterSigner.separateOne(
           tokenId,
           hatTokenId,
           hat.address,
@@ -301,7 +302,7 @@ describe("Pet contract test", () => {
           .withArgs(user.address, userTwo.address, hatTokenId);
 
         await expect(
-          userSigner.combine(
+          uriSetterSigner.combine(
             tokenId,
             [_hatTokenId],
             [hat.address],
@@ -323,7 +324,7 @@ describe("Pet contract test", () => {
       it("Error if combine one component with duplicate attribute", async () => {
         expect(await hat.ownerOf(_hatTokenId)).to.equal(user.address);
         await expect(
-          userSigner.combine(
+          uriSetterSigner.combine(
             tokenId,
             [_hatTokenId],
             [hat.address],
@@ -372,7 +373,12 @@ describe("Pet contract test", () => {
           .connect(userTwo)
           .transferFrom(userTwo.address, user.address, _tokenId);
         await expect(
-          userSigner.combine(tokenId, [_tokenId], [pet.address], updateTokenURI)
+          uriSetterSigner.combine(
+            tokenId,
+            [_tokenId],
+            [pet.address],
+            updateTokenURI
+          )
         ).to.be.revertedWith("not support combine between primary token");
       });
     });
@@ -428,21 +434,6 @@ describe("Pet contract test", () => {
           }
         }
       });
-
-      // Legacy
-      // it("Upgrade level with subToken before separate", async () => {
-      //   await expect(userSigner.upgrade(hatTokenId, Level, 1)).not.to.be
-      //     .reverted;
-      //   await expect(
-      //     userSigner.separateOne(
-      //       tokenId,
-      //       hatTokenId,
-      //       hat.address,
-      //       updateTokenURI
-      //     )
-      //   ).not.to.be.reverted;
-      //   expect(await pet.levelOf(hatTokenId, Level)).to.be.equal(1);
-      // });
     });
   });
 
@@ -496,7 +487,11 @@ describe("Pet contract test", () => {
       await expect(pet.setComponents("Cloth", cloth.address)).not.to.be
         .reverted;
       await expect(cloth.connect(user).mint()).not.to.be.reverted;
-      await userSigner.combine(tokenId, [0], [cloth.address], updateTokenURI);
+      await expect(
+        uriSetterSigner.combine(tokenId, [0], [cloth.address], updateTokenURI)
+      ).not.to.be.reverted;
+      const subTokens = await pet.getSynthesizedTokens(tokenId);
+      expect(subTokens.length).to.be.eq(3);
     });
   });
 });

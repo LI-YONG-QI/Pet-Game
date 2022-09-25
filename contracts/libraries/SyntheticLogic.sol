@@ -26,6 +26,7 @@ library SyntheticLogic {
                 subIds[i],
                 nft_attr
             );
+            address owner = IComponentBase(subAddress[i]).ownerOf(subIds[i]);
             require(
                 keccak256(text) != keccak256(primaryAttrText),
                 "not support combine between primary token"
@@ -42,7 +43,7 @@ library SyntheticLogic {
                 );
             }
             IComponentBase(subAddress[i]).transferFrom(
-                msg.sender,
+                owner,
                 address(this),
                 subIds[i]
             );
