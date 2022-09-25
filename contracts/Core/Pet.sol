@@ -5,18 +5,18 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./ERC3664/Synthetic/ERC3664CrossSynthetic.sol";
-import "./ERC3664/extensions/ERC3664Upgradable.sol";
-import "./ERC3664/extensions/ERC3664Updatable.sol";
-import "./ERC3664/presets/ERC3664Generic.sol";
-import "./ERC3664/utils/StringsUtil.sol";
-import "./Component/IComponentBase.sol";
+import "../ERC3664/Synthetic/ERC3664CrossSynthetic.sol";
+import "../ERC3664/extensions/ERC3664Upgradable.sol";
+import "../ERC3664/extensions/ERC3664Updatable.sol";
+import "../ERC3664/presets/ERC3664Generic.sol";
+import "../ERC3664/utils/StringsUtil.sol";
+import "../Component/IComponentBase.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./ERC2981/ERC2981ContracWideRoyalties.sol";
+import "../ERC2981/ERC2981ContracWideRoyalties.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
-import {PetData} from "./libraries/PetData.sol";
-import {SyntheticLogic} from "./libraries/SyntheticLogic.sol";
+import {PetData} from "../libraries/PetData.sol";
+import {SyntheticLogic} from "../libraries/SyntheticLogic.sol";
 
 contract Pet is
     ERC721Enumerable,
@@ -39,6 +39,8 @@ contract Pet is
     bool public isSalesActive = false;
     uint256 public constant Supply = 8000;
 
+    //address public GovernanceContract;
+
     constructor(
         uint256[] memory attrIds,
         string[] memory names,
@@ -48,7 +50,6 @@ contract Pet is
     ) ERC721("Pet", "PET") ERC3664(attrBaseURI) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(PetData.MINTER_ROLE, _msgSender());
-        _setupRole(PetData.ATTACH_ROLE, _msgSender());
         _setupRole(PetData.URI_SETTER, _msgSender());
 
         _mintBatch(attrIds, names, symbols, uris);
@@ -142,8 +143,7 @@ contract Pet is
         uint256[] calldata subIds,
         address[] calldata subAddress,
         string memory _uri
-    ) public {
-        require(ownerOf(tokenId) == _msgSender(), "caller is not token owner");
+    ) public onlyRole(PetData.URI_SETTER) {
         require(
             primaryAttributeOf(tokenId) == PetData.PET_NFT,
             "only support primary token been combine"
@@ -184,11 +184,11 @@ contract Pet is
         uint256 subId,
         address subAddress,
         string memory _uri
-    ) public {
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "caller is not token owner nor approved"
-        );
+    ) public onlyRole(PetData.URI_SETTER) {
+        // require(
+        //     _isApprovedOrOwner(_msgSender(), tokenId),
+        //     "caller is not token owner nor approved"
+        // );
         require(
             primaryAttributeOf(tokenId) == PetData.PET_NFT,
             "only support primary token separate"
@@ -221,17 +221,28 @@ contract Pet is
 
         setPrimaryAttribute(tokenId, PetData.PET_NFT);
 
-        IComponentBase(components["Hand"]).mint(tokenId, tokenId);
-        IComponentBase(components["Hat"]).mint(tokenId, tokenId);
-        recordSynthesized(_msgSender(), components["Hat"], tokenId, tokenId);
-        recordSynthesized(_msgSender(), components["Hand"], tokenId, tokenId);
+        for (uint256 i = 1; i <= componentsAmount; i++) {
+            string memory name = componentsName[i];
+            address componentAddr = components[name];
+            uint256 subId = IComponentBase(componentAddr).getCurrentTokenId();
+            IComponentBase(componentAddr).mint();
+            IComponentBase(componentAddr).recordSubTokens(
+                subId,
+                address(this),
+                tokenId
+            );
+            recordSynthesized(_msgSender(), components[name], tokenId, tokenId);
+        }
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
         return baseURI;
     }
 
-    function setBaseURI(string memory newURI) public onlyOwner {
+    function setBaseURI(string memory newURI)
+        public
+        onlyRole(PetData.URI_SETTER)
+    {
         baseURI = newURI;
     }
 

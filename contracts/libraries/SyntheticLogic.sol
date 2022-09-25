@@ -15,10 +15,10 @@ library SyntheticLogic {
             storage synthesizedTokens
     ) public {
         for (uint256 i = 0; i < subIds.length; i++) {
-            require(
-                IComponentBase(subAddress[i]).ownerOf(subIds[i]) == msg.sender,
-                "caller is not sub token owner"
-            );
+            // require(
+            //     IComponentBase(subAddress[i]).ownerOf(subIds[i]) == msg.sender,
+            //     "caller is not sub token owner"
+            // );
             uint256 nft_attr = IComponentBase(subAddress[i]).primaryAttributeOf(
                 subIds[i]
             );

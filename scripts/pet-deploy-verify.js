@@ -45,7 +45,7 @@ async function main() {
     console.log("Verifying Pet contract...");
     await hre.run("verify:verify", {
       address: pet.address,
-      contract: "contracts/Pet.sol:Pet",
+      contract: "contracts/Core/Pet.sol:Pet",
       constructorArguments: [attrIds, names, symbols, uris, attrBaseURI],
     });
   } catch (err) {

@@ -7,10 +7,10 @@ import "../ERC3664/ERC3664.sol";
 import "../ERC3664/extensions/ERC3664Upgradable.sol";
 import "./ComponentBase.sol";
 
-contract Hand is ComponentBase, ERC3664Upgradable {
+contract Pants is ComponentBase, ERC3664Upgradable {
     uint8 public constant LEVEL = 2;
 
-    constructor() ComponentBase("HAND", "hand", "HandComponent") {
+    constructor() ComponentBase("PANTS", "pants", "PantsComponent") {
         mintWithLevel(LEVEL, "LEVEL", "level", "", 10);
     }
 

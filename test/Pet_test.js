@@ -34,6 +34,8 @@ const _INTERFACE_ID_ERC721 = "0x80ac58cd";
 
 const util = ethers.utils;
 
+const URI_SETTER = util.keccak256(util.toUtf8Bytes("URI_SETTER"));
+
 describe("Pet contract test", () => {
   let owner;
   let user;
@@ -63,9 +65,9 @@ describe("Pet contract test", () => {
 
     await pet.setComponents("Hat", hat.address);
     await pet.setComponents("Hand", hand.address);
+    await pet.grantRole(URI_SETTER, user.address);
 
     await hat.setBaseURI(hatBaseURI);
-
     await hat.connect(user).setApprovalForAll(pet.address, true);
   });
 
@@ -107,8 +109,9 @@ describe("Pet contract test", () => {
       expect(await pet.tokenURI(tokenId)).to.be.equal("http://testURI/0.json");
     });
 
-    it("Error if caller of setBaseURI() is not owner", async () => {
-      await expect(userSigner.setBaseURI("http://testURI/")).to.be.reverted;
+    it("Error if caller of setBaseURI() is not URI_SETTER", async () => {
+      await expect(pet.connect(userTwo).setBaseURI("http://testURI/")).to.be
+        .reverted;
     });
   });
 
@@ -174,21 +177,22 @@ describe("Pet contract test", () => {
         expect(await hat.tokenURI(hatTokenId)).to.equal(hatBaseURI + "0.json");
       });
 
-      it("Error if execute separateOne() from user that not the owner of token", async () => {
-        await expect(
-          ownerSigner.separateOne(
-            tokenId,
-            hatTokenId,
-            hat.address,
-            updateTokenURI
-          )
-        ).to.be.revertedWith("caller is not token owner nor approved");
-        await expect(
-          pet
-            .connect(userTwo)
-            .separateOne(tokenId, hatTokenId, hat.address, updateTokenURI)
-        ).to.be.revertedWith("caller is not token owner nor approved");
-      });
+      // Legacy
+      // it("Error if execute separateOne() from user that not the owner of token", async () => {
+      //   await expect(
+      //     userSigner.separateOne(
+      //       tokenId,
+      //       hatTokenId,
+      //       hat.address,
+      //       updateTokenURI
+      //     )
+      //   ).to.be.revertedWith("caller is not token owner nor approved");
+      //   await expect(
+      //     pet
+      //       .connect(userTwo)
+      //       .separateOne(tokenId, hatTokenId, hat.address, updateTokenURI)
+      //   ).to.be.revertedWith("caller is not token owner nor approved");
+      // });
 
       it("Error if execute separateOne() when subToken is separated", async () => {
         await userSigner.separateOne(
@@ -264,9 +268,12 @@ describe("Pet contract test", () => {
           value: util.parseEther(MINT_PRICE),
         });
 
-        await pet
-          .connect(userTwo)
-          .separateOne(_tokenId, _hatTokenId, hat.address, updateTokenURI);
+        await userSigner.separateOne(
+          _tokenId,
+          _hatTokenId,
+          hat.address,
+          updateTokenURI
+        );
 
         await expect(
           hat
@@ -344,6 +351,22 @@ describe("Pet contract test", () => {
       //   ).to.be.revertedWith("only support primary token been combine");
       // });
 
+      // it("Error if caller is not sub token owner", async () => {
+      //   expect(await hat.ownerOf(_hatTokenId)).to.equal(user.address);
+      //   await hat
+      //     .connect(user)
+      //     .transferFrom(user.address, userTwo.address, _hatTokenId);
+
+      //   await expect(
+      //     userSigner.combine(
+      //       tokenId,
+      //       [_hatTokenId],
+      //       [hat.address],
+      //       updateTokenURI
+      //     )
+      //   ).to.be.revertedWith("caller is not sub token owner");
+      // });
+
       it("Error if primary attribute of subToken is PET", async () => {
         await pet
           .connect(userTwo)
@@ -351,22 +374,6 @@ describe("Pet contract test", () => {
         await expect(
           userSigner.combine(tokenId, [_tokenId], [pet.address], updateTokenURI)
         ).to.be.revertedWith("not support combine between primary token");
-      });
-
-      it("Error if caller is not sub token owner", async () => {
-        expect(await hat.ownerOf(_hatTokenId)).to.equal(user.address);
-        await hat
-          .connect(user)
-          .transferFrom(user.address, userTwo.address, _hatTokenId);
-
-        await expect(
-          userSigner.combine(
-            tokenId,
-            [_hatTokenId],
-            [hat.address],
-            updateTokenURI
-          )
-        ).to.be.revertedWith("caller is not sub token owner");
       });
     });
 
@@ -470,6 +477,26 @@ describe("Pet contract test", () => {
       let info = await pet.royaltyInfo(0, SLAES_PRICE);
       expect(info[1]).to.be.equal((SLAES_PRICE * RATIO) / 10000);
       expect(info[0]).to.be.equal(recipient.address);
+    });
+  });
+
+  describe("Added new component contract ", async () => {
+    beforeEach(async () => {
+      const Cloth = await ethers.getContractFactory("Cloth");
+      cloth = await Cloth.deploy();
+
+      await ownerSigner.setIsActive(true, baseURI);
+      await userSigner.mint(tokenId, {
+        value: util.parseEther(MINT_PRICE),
+      });
+
+      await cloth.connect(user).setApprovalForAll(pet.address, true);
+    });
+    it("Combine with new component", async () => {
+      await expect(pet.setComponents("Cloth", cloth.address)).not.to.be
+        .reverted;
+      await expect(cloth.connect(user).mint()).not.to.be.reverted;
+      await userSigner.combine(tokenId, [0], [cloth.address], updateTokenURI);
     });
   });
 });

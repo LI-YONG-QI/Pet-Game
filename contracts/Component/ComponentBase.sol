@@ -13,6 +13,7 @@ contract ComponentBase is ERC721Enumerable, ERC3664, ERC3664TextBased, Ownable {
     using Strings for uint256;
 
     uint8 public constant PRIMARY = 1;
+    uint256 public currentTokenId = 0;
     string public primaryText;
 
     string public baseURI;
@@ -43,18 +44,18 @@ contract ComponentBase is ERC721Enumerable, ERC3664, ERC3664TextBased, Ownable {
         return super.supportsInterface(interfaceId);
     }
 
-    function mint(uint256 primaryTokenId, uint256 tokenId) public virtual {
-        _mint(msg.sender, tokenId);
-        attachWithText(tokenId, PRIMARY, 1, bytes(primaryText));
-        setPrimaryAttribute(tokenId, PRIMARY);
-        recordSubTokens(tokenId, msg.sender, primaryTokenId);
+    function mint() public virtual {
+        _mint(msg.sender, currentTokenId);
+        attachWithText(currentTokenId, PRIMARY, 1, bytes(primaryText));
+        setPrimaryAttribute(currentTokenId, PRIMARY);
+        currentTokenId++;
     }
 
     function recordSubTokens(
         uint256 tokenId,
         address primaryToken,
         uint256 primaryTokenId
-    ) internal {
+    ) public {
         subTokens[tokenId] = subToken(primaryToken, primaryTokenId);
     }
 
@@ -91,5 +92,9 @@ contract ComponentBase is ERC721Enumerable, ERC3664, ERC3664TextBased, Ownable {
                     )
                 )
                 : "";
+    }
+
+    function getCurrentTokenId() public view returns (uint256) {
+        return currentTokenId;
     }
 }

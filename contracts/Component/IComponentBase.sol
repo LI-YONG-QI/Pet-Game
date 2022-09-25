@@ -7,5 +7,13 @@ import "../ERC3664/IERC3664.sol";
 import {IERC3664TextBased} from "../ERC3664/extensions/IERC3664TextBased.sol";
 
 interface IComponentBase is IERC721, IERC3664TextBased {
-    function mint(uint256 primaryToken, uint256 primaryTokenId) external;
+    function mint() external;
+
+    function recordSubTokens(
+        uint256 tokenId,
+        address primaryToken,
+        uint256 primaryTokenId
+    ) external;
+
+    function getCurrentTokenId() external returns (uint256);
 }
