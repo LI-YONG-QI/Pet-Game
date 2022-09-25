@@ -40,8 +40,6 @@
 
 每個 Component 為獨立出來的合約，每個 Component 同時也是一個獨立 ERC721 token，可進行交易、轉移等等功能，並且需繼承**ComponentBase**，符合其相關 interface 規範，以便 Pet 主合約的調用
 
----
-
 # 使用案例 Use Case
 
 ## 一般情況 General Scenario

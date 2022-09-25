@@ -2,7 +2,13 @@ const { expect } = require("chai");
 const { defaultAbiCoder } = require("ethers/lib/utils");
 const { utils } = require("ethers");
 const { ethers } = require("hardhat");
-const { attrIds, names, symbols, uris } = require("./helpers/Data");
+const {
+  attrIds,
+  names,
+  symbols,
+  uris,
+  attrBaseURI,
+} = require("../contracts/helpers/Data");
 
 describe("Receiver contract test", () => {
   //ethers.utils.id() use to string convert to bytes32 with keccak256
@@ -20,14 +26,23 @@ describe("Receiver contract test", () => {
 
   beforeEach(async () => {
     [owner, user, market] = await ethers.getSigners();
+
+    const SyntheticLogic = await ethers.getContractFactory("SyntheticLogic");
+    const syntheticLogic = await SyntheticLogic.deploy();
+
     const ReceiverContract = await ethers.getContractFactory(
       "ReceiverContract"
     );
-    const Pet2 = await ethers.getContractFactory("Pet2");
-    const Pet = await ethers.getContractFactory("Pet");
-    pet2 = await Pet2.deploy();
-    pet = await Pet.deploy(attrIds, names, symbols, uris);
+    const Pet = await ethers.getContractFactory("Pet", {
+      libraries: {
+        SyntheticLogic: syntheticLogic.address,
+      },
+    });
+    pet = await Pet.deploy(attrIds, names, symbols, uris, attrBaseURI);
     receiverContract = await ReceiverContract.deploy(pet.address, 1000);
+
+    const Hat = await ethers.getContractFactory("Hat");
+    hat = await Hat.deploy();
 
     ownerSigner = receiverContract.connect(owner);
   });
@@ -45,10 +60,14 @@ describe("Receiver contract test", () => {
 
     it("Add one member", async () => {
       expect(await receiverContract.memberExists(1)).to.be.equal(false);
-      await receiverContract.addMember(pet2.address, 500);
+      await receiverContract.addMember(hat.address, 500);
       expect(await receiverContract.memberExists(1)).to.be.equal(true);
+      expect(await receiverContract.getMemberAddress(1)).to.be.equal(
+        hat.address
+      );
+      expect(await receiverContract.getMemberRoyalties(1)).to.be.equal(500);
 
-      expect(await receiverContract.hasRole(MEMBER, pet2.address)).to.be.equal(
+      expect(await receiverContract.hasRole(MEMBER, hat.address)).to.be.equal(
         true
       );
     });
@@ -75,33 +94,38 @@ describe("Receiver contract test", () => {
         value: 10000,
       };
       await expect(market.sendTransaction(tx)).not.to.be.reverted;
+      await receiverContract.addMember(hat.address, 500);
+      expect(await receiverContract.memberExists(1)).to.be.equal(true);
+      expect(await receiverContract.getMemberAddress(1)).to.be.equal(
+        hat.address
+      );
 
-      await expect(ownerSigner.processRoyalties(0))
-        .to.emit(receiverContract, "TransferRoyalties")
-        .withArgs(owner.address, 1000, pet.address);
+      await ownerSigner.processRoyalties();
 
       let balance = await provider.getBalance(pet.address);
       expect(balance).to.be.equal("1000");
+      balance = await provider.getBalance(hat.address);
+      expect(balance).to.be.equal("500");
     });
 
     it("Grant member role with admin", async () => {
-      await expect(ownerSigner.addMember(pet2.address, 500)).not.to.be.reverted;
-      await expect(ownerSigner.grantRole(ADMIN, pet2.address)).not.to.be
+      await expect(ownerSigner.addMember(hat.address, 500)).not.to.be.reverted;
+      await expect(ownerSigner.grantRole(ADMIN, hat.address)).not.to.be
         .reverted;
-      expect(await receiverContract.hasRole(ADMIN, pet2.address)).to.be.equal(
+      expect(await receiverContract.hasRole(ADMIN, hat.address)).to.be.equal(
         true
       );
     });
     it("Revoke member role with admin", async () => {
-      await expect(ownerSigner.addMember(pet2.address, 500)).not.to.be.reverted;
-      await expect(ownerSigner.grantRole(ADMIN, pet2.address)).not.to.be
+      await expect(ownerSigner.addMember(hat.address, 500)).not.to.be.reverted;
+      await expect(ownerSigner.grantRole(ADMIN, hat.address)).not.to.be
         .reverted;
-      expect(await receiverContract.hasRole(ADMIN, pet2.address)).to.be.equal(
+      expect(await receiverContract.hasRole(ADMIN, hat.address)).to.be.equal(
         true
       );
-      await expect(ownerSigner.revokeRole(ADMIN, pet2.address)).not.to.be
+      await expect(ownerSigner.revokeRole(ADMIN, hat.address)).not.to.be
         .reverted;
-      expect(await receiverContract.hasRole(ADMIN, pet2.address)).to.be.equal(
+      expect(await receiverContract.hasRole(ADMIN, hat.address)).to.be.equal(
         false
       );
     });

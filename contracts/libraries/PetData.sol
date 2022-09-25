@@ -2,8 +2,7 @@
 pragma solidity ^0.8.0;
 
 library PetData {
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    //bytes32 public constant ATTACH_ROLE = keccak256("ATTACH_ROLE");
+    bytes32 public constant GOVERNORS = keccak256("GOVERNORS");
     bytes32 public constant URI_SETTER = keccak256("URI_SETTER");
 
     // immutable attributes

@@ -11,7 +11,7 @@
     "deploy:pet-mumbai": "npx hardhat run --network mumbai scripts/pet-deploy-verify.js",
     "test:Pet": "npx hardhat test test/Pet_test.js --network localhost",
     "test:Hat": "npx hardhat test test/Hat_test.js --network localhost",
-    "test:ReceiverContract": "npx hardhat test test/ReceiverContract_test.js --network localhost",
+    "test:ReceiverContract": "npx hardhat test test/ReceiverContract_test.js",
     "test:Pet_ModularTest": "npx hardhat test test/Pet_ModularTest.js --network localhost"
   },
   "keywords": [],
