@@ -8,7 +8,12 @@ import "../ERC3664/extensions/ERC3664Upgradable.sol";
 import "./ComponentBase.sol";
 
 contract Hat is ComponentBase, ERC3664Upgradable {
+    event Deposit(address sender, uint256 amount, uint256 balance);
     uint8 public constant LEVEL = 2;
+
+    receive() external payable {
+        emit Deposit(msg.sender, msg.value, address(this).balance);
+    }
 
     constructor() ComponentBase("HAT", "hat", "HatComponent") {
         mintWithLevel(LEVEL, "LEVEL", "level", "", 10);

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "hardhat/console.sol";
 
 contract ReceiverContract is Ownable, AccessControl {
     event Deposit(address sender, uint256 amount, uint256 balance);
@@ -66,12 +67,13 @@ contract ReceiverContract is Ownable, AccessControl {
         return memberRoyalties[_memberId];
     }
 
-    function processRoyalties(uint256 _memberId) public onlyRole(ADMIN) {
-        uint256 _value = (address(this).balance *
-            getMemberRoyalties(_memberId)) / 10000;
-        (bool success, ) = getMemberAddress(_memberId).call{value: _value}("");
-
-        require(success, "Failed to send Ether");
-        emit TransferRoyalties(msg.sender, _value, getMemberAddress(_memberId));
+    function processRoyalties() public onlyRole(ADMIN) {
+        uint256 balance = (address(this).balance);
+        for (uint i = 0; i < currentMemberId; i++) {
+            uint256 _value = (balance * getMemberRoyalties(i)) / 10000;
+            (bool success, ) = getMemberAddress(i).call{value: _value}("");
+            require(success, "Failed to send Ether");
+            //emit TransferRoyalties(msg.sender, _value, getMemberAddress(i));
+        }
     }
 }

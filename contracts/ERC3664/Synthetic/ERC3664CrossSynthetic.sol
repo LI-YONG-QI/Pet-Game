@@ -90,7 +90,7 @@ abstract contract ERC3664CrossSynthetic is ERC3664TextBased {
         return data;
     }
 
-    function setComponents(string memory name, address _addr) public {
+    function setComponents(string memory name, address _addr) public virtual {
         componentsAmount++;
         components[name] = _addr;
         componentsName[componentsAmount] = name;

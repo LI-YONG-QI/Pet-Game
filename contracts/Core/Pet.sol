@@ -15,6 +15,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "../ERC2981/ERC2981ContracWideRoyalties.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
+import {IReceiverContract} from "../Governance/IReceiverContract.sol";
 import {PetData} from "../libraries/PetData.sol";
 import {SyntheticLogic} from "../libraries/SyntheticLogic.sol";
 
@@ -38,8 +39,7 @@ contract Pet is
     string public baseURI;
     bool public isSalesActive = false;
     uint256 public constant Supply = 8000;
-
-    //address public GovernanceContract;
+    address public governance;
 
     constructor(
         uint256[] memory attrIds,
@@ -49,7 +49,7 @@ contract Pet is
         string memory attrBaseURI
     ) ERC721("Pet", "PET") ERC3664(attrBaseURI) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(PetData.MINTER_ROLE, _msgSender());
+        _setupRole(PetData.GOVERNORS, _msgSender());
         _setupRole(PetData.URI_SETTER, _msgSender());
 
         _mintBatch(attrIds, names, symbols, uris);
@@ -69,12 +69,7 @@ contract Pet is
         string[] calldata names,
         string[] calldata symbols,
         string[] calldata uris
-    ) public virtual {
-        require(
-            hasRole(PetData.MINTER_ROLE, _msgSender()),
-            "ERC3664Generic: must have minter role to mint"
-        );
-
+    ) public virtual onlyOwner {
         _mintBatch(attrIds, names, symbols, uris);
     }
 
@@ -185,10 +180,6 @@ contract Pet is
         address subAddress,
         string memory _uri
     ) public onlyRole(PetData.URI_SETTER) {
-        // require(
-        //     _isApprovedOrOwner(_msgSender(), tokenId),
-        //     "caller is not token owner nor approved"
-        // );
         require(
             primaryAttributeOf(tokenId) == PetData.PET_NFT,
             "only support primary token separate"
@@ -278,5 +269,12 @@ contract Pet is
             "caller is not token owner nor approved"
         );
         super.increase(tokenId, attrId, amount);
+    }
+
+    function setGovernance(address newAddr)
+        external
+        onlyRole(PetData.GOVERNORS)
+    {
+        governance = newAddr;
     }
 }
