@@ -1,5 +1,4 @@
 const { expect } = require("chai");
-const { defaultAbiCoder } = require("ethers/lib/utils");
 const { utils } = require("ethers");
 const { ethers } = require("hardhat");
 const {
@@ -8,21 +7,16 @@ const {
   symbols,
   uris,
   attrBaseURI,
-} = require("../contracts/helpers/Data");
+  _chainlinkParams,
+  mockVrfAddress,
+} = require("../../helpers/Data");
 
 describe("Receiver contract test", () => {
   //ethers.utils.id() use to string convert to bytes32 with keccak256
   const MEMBER = utils.id("Member");
   const ADMIN = utils.id("Admin");
 
-  const SLAES_PRICE = 10000;
   const provider = ethers.provider;
-
-  const fromExchange = {
-    memberId: 1,
-    memberAmout: 6000,
-    publisherAmount: 4000,
-  };
 
   beforeEach(async () => {
     [owner, user, market] = await ethers.getSigners();
@@ -30,15 +24,21 @@ describe("Receiver contract test", () => {
     const SyntheticLogic = await ethers.getContractFactory("SyntheticLogic");
     const syntheticLogic = await SyntheticLogic.deploy();
 
-    const ReceiverContract = await ethers.getContractFactory(
-      "ReceiverContract"
-    );
+    const ReceiverContract = await ethers.getContractFactory("Governance");
     const Pet = await ethers.getContractFactory("Pet", {
       libraries: {
         SyntheticLogic: syntheticLogic.address,
       },
     });
-    pet = await Pet.deploy(attrIds, names, symbols, uris, attrBaseURI);
+    pet = await Pet.deploy(
+      attrIds,
+      names,
+      symbols,
+      uris,
+      attrBaseURI,
+      mockVrfAddress,
+      _chainlinkParams
+    );
     receiverContract = await ReceiverContract.deploy(pet.address, 1000);
 
     const Hat = await ethers.getContractFactory("Hat");

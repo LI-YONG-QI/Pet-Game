@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "hardhat/console.sol";
 
-contract ReceiverContract is Ownable, AccessControl {
+contract Governance is Ownable, AccessControl {
     event Deposit(address sender, uint256 amount, uint256 balance);
     event TransferRoyalties(address sender, uint256 value, address receiver);
 

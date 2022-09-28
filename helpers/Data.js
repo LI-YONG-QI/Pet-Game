@@ -26,10 +26,18 @@ const _tokenURI = "https://ipfs.io/ipfs/PetCID/1.json";
 const updateTokenURI = "https://ipfs.io/ipfs/UpdateCID/";
 
 const emptyAddress = "0x0000000000000000000000000000000000000000";
+const mockVrfAddress = "0x0000000000000000000000000000000000000001";
 
 const MINT_PRICE = "0.005";
 const SLAES_PRICE = 10000;
 const RATIO = 1000; //2.5%
+
+const _chainlinkParams = {
+  keyHash: "0x4b09e658ed251bcafeebbc69400383d49f344ace09b9576fe248bb02c003fe9f",
+  subId: 1,
+  requestConfirms: 3,
+  gasLimit: 1000000,
+};
 
 module.exports = {
   attrIds,
@@ -54,4 +62,6 @@ module.exports = {
   updateTokenURI,
   RATIO,
   SLAES_PRICE,
+  _chainlinkParams,
+  mockVrfAddress,
 };

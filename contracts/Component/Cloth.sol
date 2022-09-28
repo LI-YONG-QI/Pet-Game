@@ -9,6 +9,11 @@ import "./ComponentBase.sol";
 
 contract Cloth is ComponentBase, ERC3664Upgradable {
     uint8 public constant LEVEL = 2;
+    event Deposit(address sender, uint256 amount, uint256 balance);
+
+    receive() external payable {
+        emit Deposit(msg.sender, msg.value, address(this).balance);
+    }
 
     constructor() ComponentBase("CLOTH", "cloth", "ClothComponent") {
         mintWithLevel(LEVEL, "LEVEL", "level", "", 10);
