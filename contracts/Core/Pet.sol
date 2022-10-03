@@ -10,17 +10,16 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
-import "../ERC3664/Synthetic/ERC3664CrossSynthetic.sol";
+import {ERC3664CrossSynthetic} from "../ERC3664/Synthetic/ERC3664CrossSynthetic.sol";
 import "../ERC3664/extensions/ERC3664Upgradable.sol";
-import "../ERC3664/extensions/ERC3664Updatable.sol";
-import "../ERC3664/utils/StringsUtil.sol";
 
-import "../Component/IComponentBase.sol";
-import "../ERC2981/ERC2981ContracWideRoyalties.sol";
+import {IComponentBase} from "../Component/IComponentBase.sol";
+import "../ERC2981/ERC2981ContractWideRoyalties.sol";
 
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import {IGovernance} from "../Governance/IGovernance.sol";
+
 import {PetData} from "../libraries/PetData.sol";
 import {SyntheticLogic} from "../libraries/SyntheticLogic.sol";
 
@@ -28,14 +27,12 @@ contract Pet is
     ERC721Enumerable,
     ERC3664Upgradable,
     ERC3664CrossSynthetic,
-    ERC3664Updatable,
     Ownable,
     AccessControlEnumerable,
     ERC2981ContractWideRoyalties,
     VRFConsumerBaseV2
 {
     using Strings for uint256;
-    using StringsUtil for string;
 
     event RequestedRandomness(uint256 reqId, address invoker);
     event ReceivedRandomness();
@@ -89,7 +86,7 @@ contract Pet is
     mapping(uint256 => string) choosedCharacteristicText;
 
     //Random offset of characteristic text index
-    uint256 private _offset;
+    uint256 private _offset = 0;
 
     constructor(
         uint256[] memory attrIds,
@@ -307,6 +304,7 @@ contract Pet is
     function setIsActive(bool status, string memory newURI) public onlyOwner {
         isSalesActive = status;
         setBaseURI(newURI);
+        //requestRandomWords();
     }
 
     function _setTokenURI(uint256 tokenId, string memory uri) private {
@@ -346,19 +344,8 @@ contract Pet is
         super.upgrade(_tokenId, _attrId, _level);
     }
 
-    function increase(
-        uint256 tokenId,
-        uint256 attrId,
-        uint256 amount
-    ) public virtual override {
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "caller is not token owner nor approved"
-        );
-        super.increase(tokenId, attrId, amount);
-    }
-
     function requestRandomWords() public {
+        require(_offset == 0, "Requseted!");
         uint256 reqId = COORDINATOR.requestRandomWords(
             chainlinkParams.keyHash,
             chainlinkParams.subId,

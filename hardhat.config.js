@@ -25,10 +25,11 @@ require("hardhat-gas-reporter");
 require("dotenv").config();
 
 const privateKey = process.env.PRIVATE_KEY;
-const endpointRinkeby = process.env.RINKEBY_URL;
+//const endpointRinkeby = process.env.RINKEBY_URL;
 const endpointMumbai = process.env.MUMBAI_URL;
-const rinkebyKey = process.env.RINKEBY_API_KEY;
-const mumbaiKey = process.env.MUMBAI_API_KEY;
+const etherscanKey = process.env.ETHERSCAN_API_KEY;
+const mumbaiKey = process.env.POLYGON_API_KEY;
+const endpointGoerli = process.env.GOERLI_URL;
 
 module.exports = {
   solidity: {
@@ -36,7 +37,7 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 150,
       },
     },
   },
@@ -44,8 +45,8 @@ module.exports = {
     hardhat: {
       allowUnlimitedContractSize: true,
     },
-    rinkeby: {
-      url: endpointRinkeby,
+    goerli: {
+      url: endpointGoerli,
       accounts: [`0x${privateKey}`],
     },
     mumbai: {
@@ -56,11 +57,8 @@ module.exports = {
 
   etherscan: {
     apiKey: {
-      //ethereum
-      rinkeby: rinkebyKey,
-
-      //polygon
       polygonMumbai: mumbaiKey,
+      goerli: etherscanKey,
     },
   },
 };

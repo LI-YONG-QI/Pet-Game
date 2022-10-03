@@ -7,11 +7,11 @@ const {
   attrBaseURI,
   uris,
   mockVrfAddress,
-  _chainlinkParams,
   baseURI,
   RATIO,
   MINT_PRICE,
   SLAES_PRICE,
+  mockVrfParams,
 } = require("../../helpers/Data");
 
 describe("Contract wide Royalties test", async () => {
@@ -37,7 +37,7 @@ describe("Contract wide Royalties test", async () => {
       uris,
       attrBaseURI,
       mockVrfAddress,
-      _chainlinkParams
+      mockVrfParams
     );
     await pet.connect(owner).setIsActive(true, baseURI);
   });

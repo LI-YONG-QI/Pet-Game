@@ -9,6 +9,8 @@ const {
   attrBaseURI,
   _chainlinkParams,
   mockVrfAddress,
+  VrfAddress,
+  VrfParams,
 } = require("../../helpers/Data");
 
 describe("Receiver contract test", () => {
@@ -36,8 +38,8 @@ describe("Receiver contract test", () => {
       symbols,
       uris,
       attrBaseURI,
-      mockVrfAddress,
-      _chainlinkParams
+      VrfAddress,
+      VrfParams
     );
     receiverContract = await ReceiverContract.deploy(pet.address, 1000);
 

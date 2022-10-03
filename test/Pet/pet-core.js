@@ -11,6 +11,8 @@ const {
   baseURI,
   emptyAddress,
   _chainlinkParams,
+  VrfAddress,
+  VrfParams,
 } = require("../../helpers/Data");
 
 const {
@@ -53,8 +55,8 @@ describe("Pet contract test", () => {
       symbols,
       uris,
       attrBaseURI,
-      VrfCoordinatorV2Mock.address,
-      _chainlinkParams
+      VrfAddress,
+      VrfParams
     );
 
     const Hat = await ethers.getContractFactory("Hat");

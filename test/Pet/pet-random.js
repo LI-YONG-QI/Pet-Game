@@ -12,6 +12,9 @@ const {
   MINT_PRICE,
   baseURI,
   _chainlinkParams,
+  VrfAddress,
+  VrfParams,
+  mockVrfParams,
 } = require("../../helpers/Data");
 
 describe("Pet random number test", () => {
@@ -41,7 +44,7 @@ describe("Pet random number test", () => {
       uris,
       attrBaseURI,
       VrfCoordinatorV2Mock.address,
-      _chainlinkParams
+      mockVrfParams
     );
   });
   it("Pet receive random number", async () => {

@@ -16,6 +16,8 @@ const {
   baseURI,
   updateTokenURI,
   _chainlinkParams,
+  VrfAddress,
+  VrfParams,
 } = require("../../helpers/Data");
 
 const {
@@ -56,8 +58,8 @@ describe("Pet Sythetic", () => {
       symbols,
       uris,
       attrBaseURI,
-      VrfCoordinatorV2Mock.address,
-      _chainlinkParams
+      VrfAddress,
+      VrfParams
     );
 
     const Hat = await ethers.getContractFactory("Hat");
@@ -131,11 +133,12 @@ describe("Pet Sythetic", () => {
           .to.emit(pet, "SetTokenURI")
           .withArgs(uriSetter.address, _tokenId, updateTokenURI);
 
-        expect(await pet.ownerOf(tokenId)).to.equal(user.address);
         expect(await pet["balanceOf(address)"](user.address)).to.equal(2);
+        expect(await pet.ownerOf(tokenId)).to.equal(user.address);
         expect(await pet.tokenURI(tokenId)).to.equal(updateTokenURI);
 
         expect(await hat["balanceOf(address)"](user.address)).to.equal(2);
+        expect(await hat.ownerOf(hatTokenId)).to.equal(user.address);
         expect(await hat.tokenURI(hatTokenId)).to.equal(hatBaseURI + "0.json");
       });
 

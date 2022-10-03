@@ -7,7 +7,9 @@ const {
   symbols,
   uris,
   attrBaseURI,
-} = require("../contracts/helpers/Data");
+  VrfAddress,
+  VrfParams,
+} = require("../helpers/Data");
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -38,7 +40,15 @@ async function main() {
       SyntheticLogic: syntheticLogic.address,
     },
   });
-  const pet = await Pet.deploy(attrIds, names, symbols, uris, attrBaseURI);
+  const pet = await Pet.deploy(
+    attrIds,
+    names,
+    symbols,
+    uris,
+    attrBaseURI,
+    VrfAddress,
+    VrfParams
+  );
   console.log(`Token Contract address --> ${pet.address}`);
   await pet.deployTransaction.wait(5);
   try {
@@ -46,7 +56,15 @@ async function main() {
     await hre.run("verify:verify", {
       address: pet.address,
       contract: "contracts/Core/Pet.sol:Pet",
-      constructorArguments: [attrIds, names, symbols, uris, attrBaseURI],
+      constructorArguments: [
+        attrIds,
+        names,
+        symbols,
+        uris,
+        attrBaseURI,
+        VrfAddress,
+        VrfParams,
+      ],
     });
   } catch (err) {
     if (err.message.includes("Reason: Already Verified")) {

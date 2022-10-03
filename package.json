@@ -5,10 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy-rinkeby:full-deploy": "npx hardhat run --network rinkeby scripts/full-deploy-verify.js",
+    "deploy-goerli:full-deploy": "npx hardhat run --network goerli scripts/full-deploy-verify.js",
     "deploy-mumbai:full-deploy": "npx hardhat run --network mumbai scripts/full-deploy-verify.js",
     "deploy-localhost:full-deploy": "npx hardhat run --network localhost scripts/full-deploy-verify.js",
     "deploy-mumbai:pet": "npx hardhat run --network mumbai scripts/pet-deploy-verify.js",
+    "deploy-rinkeby:pet": "npx hardhat run --network rinkeby scripts/pet-deploy-verify.js",
+    "deploy-goeril:pet": "npx hardhat run --network goerli scripts/pet-deploy-verify.js",
     "test-localhost:pet": "npx hardhat test test/pet-core.js --network localhost",
     "test:pet-core": "npx hardhat test test/Pet/pet-core.js",
     "test:pet-random": "npx hardhat test test/Pet/pet-random.js",

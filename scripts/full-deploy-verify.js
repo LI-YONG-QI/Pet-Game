@@ -12,7 +12,9 @@ const {
   symbols,
   uris,
   attrBaseURI,
-} = require("../contracts/helpers/Data");
+  VrfAddress,
+  VrfParams,
+} = require("../helpers/Data");
 
 async function deployVerify(address, path, args) {
   try {
@@ -59,7 +61,15 @@ async function main() {
       SyntheticLogic: syntheticLogic.address,
     },
   });
-  const pet = await Pet.deploy(attrIds, names, symbols, uris, attrBaseURI);
+  const pet = await Pet.deploy(
+    attrIds,
+    names,
+    symbols,
+    uris,
+    attrBaseURI,
+    VrfAddress,
+    VrfParams
+  );
   console.log(`Token Contract address --> ${pet.address}`);
   await pet.deployTransaction.wait(5);
   await deployVerify(pet.address, "contracts/Core/Pet.sol:Pet", [
@@ -68,6 +78,8 @@ async function main() {
     symbols,
     uris,
     attrBaseURI,
+    VrfAddress,
+    VrfParams,
   ]);
 
   const Hat = await ethers.getContractFactory("Hat");
