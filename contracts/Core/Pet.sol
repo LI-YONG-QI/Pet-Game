@@ -55,7 +55,7 @@ contract Pet is
     bool public isSalesActive = false;
 
     //The total Supply of token quantity
-    uint32 public constant SUPPLY = 8000;
+    uint32 public constant SUPPLY = 30;
 
     //The address of governance contract
     address public governance;
@@ -211,26 +211,6 @@ contract Pet is
         _setTokenURI(tokenId, _uri);
     }
 
-    function separate(uint256 tokenId, string memory _uri) public {
-        // require(
-        //     _isApprovedOrOwner(_msgSender(), tokenId),
-        //     "caller is not token owner nor approved"
-        // );
-        // require(
-        //     primaryAttributeOf(tokenId) == PET_NFT,
-        //     "only support primary token separate"
-        // );
-        // SyntheticData.SynthesizedToken[] storage subs = synthesizedTokens[
-        //     tokenId
-        // ];
-        // require(subs.length > 0, "not synthesized token");
-        // for (uint256 i = 0; i < subs.length; i++) {
-        //     _transfer(address(this), subs[i].owner, subs[i].id);
-        // }
-        // delete synthesizedTokens[tokenId];
-        // _setTokenURI(tokenId, _uri);
-    }
-
     function separateOne(
         uint256 tokenId,
         uint256 subId,
@@ -279,10 +259,10 @@ contract Pet is
         for (uint256 i = 1; i <= componentsAmount; i++) {
             string memory name = componentsName[i];
             address componentAddr = components[name];
-            uint256 subId = IComponentBase(componentAddr).getCurrentTokenId();
-            IComponentBase(componentAddr).mint();
+            //uint256 subId = IComponentBase(componentAddr).getCurrentTokenId();
+            IComponentBase(componentAddr).defaultMint();
             IComponentBase(componentAddr).recordSubTokens(
-                subId,
+                tokenId,
                 address(this),
                 tokenId
             );

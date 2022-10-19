@@ -10,7 +10,6 @@ const {
   MINT_PRICE,
   baseURI,
   emptyAddress,
-  _chainlinkParams,
   VrfAddress,
   VrfParams,
 } = require("../../helpers/Data");

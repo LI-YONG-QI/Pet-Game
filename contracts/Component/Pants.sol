@@ -8,6 +8,7 @@ import "../ERC3664/extensions/ERC3664Upgradable.sol";
 import "./ComponentBase.sol";
 
 contract Pants is ComponentBase, ERC3664Upgradable {
+    uint8 public defaultMintIndex = 0;
     uint8 public constant LEVEL = 2;
     event Deposit(address sender, uint256 amount, uint256 balance);
 
@@ -34,5 +35,12 @@ contract Pants is ComponentBase, ERC3664Upgradable {
     function mint() public virtual override {
         super.mint();
         attach(currentTokenId, LEVEL, 1);
+    }
+
+    function defaultMint() public virtual override {
+        _mint(msg.sender, defaultMintIndex);
+        attachWithText(defaultMintIndex, PRIMARY, 1, bytes(primaryText));
+        setPrimaryAttribute(defaultMintIndex, PRIMARY);
+        defaultMintIndex++;
     }
 }

@@ -8,16 +8,15 @@ const {
   Characteristic,
   tokenId,
   _tokenId,
-  hatTokenId,
   hatBaseURI,
-  _hatTokenId,
   MINT_PRICE,
   PET_NFT,
   baseURI,
   updateTokenURI,
-  _chainlinkParams,
   VrfAddress,
   VrfParams,
+  petHatToken,
+  _petHatToken,
 } = require("../../helpers/Data");
 
 const {
@@ -95,7 +94,7 @@ describe("Pet Sythetic", () => {
         expect(characteristic).to.be.equal("Lazy");
       });
       it("Component ownerOf and balanceOf", async () => {
-        expect(await hat.ownerOf(hatTokenId)).to.be.eq(pet.address);
+        expect(await hat.ownerOf(petHatToken)).to.be.eq(pet.address);
         expect(await hat["balanceOf(address)"](pet.address)).to.be.eq(1);
       });
 
@@ -103,8 +102,25 @@ describe("Pet Sythetic", () => {
         await pet.connect(user).mint({
           value: utils.parseEther(MINT_PRICE),
         });
-        expect(await hat.ownerOf(_hatTokenId)).to.be.eq(pet.address);
+        expect(await hat.ownerOf(_petHatToken)).to.be.eq(pet.address);
         expect(await hat["balanceOf(address)"](pet.address)).to.be.eq(2);
+      });
+      it("Check synthetic token length and number ", async () => {
+        //Mint one hat token before mint pet token
+        await expect(hat.connect(user).mint()).not.to.be.reverted;
+        expect(await hat.ownerOf(30)).to.be.eq(user.address);
+
+        await expect(
+          pet.connect(user).mint({
+            value: utils.parseEther(MINT_PRICE),
+          })
+        ).not.to.be.reverted;
+
+        let synthesizedTokens = await pet.getSynthesizedTokens(_tokenId);
+        expect(synthesizedTokens.length).to.be.eq(2);
+
+        //Expect to be "1" and "1"
+        console.log(synthesizedTokens);
       });
     });
 
@@ -120,15 +136,15 @@ describe("Pet Sythetic", () => {
         await expect(
           pet
             .connect(uriSetter)
-            .separateOne(tokenId, hatTokenId, hat.address, updateTokenURI)
+            .separateOne(tokenId, petHatToken, hat.address, updateTokenURI)
         )
           .to.emit(hat, "Transfer")
-          .withArgs(pet.address, user.address, hatTokenId);
+          .withArgs(pet.address, user.address, petHatToken);
 
         await expect(
           pet
             .connect(uriSetter)
-            .separateOne(_tokenId, _hatTokenId, hat.address, updateTokenURI)
+            .separateOne(_tokenId, _petHatToken, hat.address, updateTokenURI)
         )
           .to.emit(pet, "SetTokenURI")
           .withArgs(uriSetter.address, _tokenId, updateTokenURI);
@@ -138,30 +154,36 @@ describe("Pet Sythetic", () => {
         expect(await pet.tokenURI(tokenId)).to.equal(updateTokenURI);
 
         expect(await hat["balanceOf(address)"](user.address)).to.equal(2);
-        expect(await hat.ownerOf(hatTokenId)).to.equal(user.address);
-        expect(await hat.tokenURI(hatTokenId)).to.equal(hatBaseURI + "0.json");
+        expect(await hat.ownerOf(petHatToken)).to.equal(user.address);
+        expect(await hat.tokenURI(petHatToken)).to.equal(
+          hatBaseURI + petHatToken + ".json"
+        );
       });
 
       it("Error if execute separateOne() when subToken is separated", async () => {
         await pet
           .connect(uriSetter)
-          .separateOne(tokenId, hatTokenId, hat.address, updateTokenURI);
+          .separateOne(tokenId, petHatToken, hat.address, updateTokenURI);
         await expect(
           pet
             .connect(uriSetter)
-            .separateOne(tokenId, hatTokenId, hat.address, updateTokenURI)
+            .separateOne(tokenId, petHatToken, hat.address, updateTokenURI)
         ).to.be.reverted;
       });
 
       it("Check URI of subToken after separate are same", async () => {
         //before
-        expect(await hat.tokenURI(hatTokenId)).to.equal(hatBaseURI + "0.json");
+        expect(await hat.tokenURI(petHatToken)).to.equal(
+          hatBaseURI + petHatToken + ".json"
+        );
 
         //after
         await pet
           .connect(uriSetter)
-          .separateOne(tokenId, hatTokenId, hat.address, updateTokenURI);
-        expect(await hat.tokenURI(hatTokenId)).to.equal(hatBaseURI + "0.json");
+          .separateOne(tokenId, petHatToken, hat.address, updateTokenURI);
+        expect(await hat.tokenURI(petHatToken)).to.equal(
+          hatBaseURI + petHatToken + ".json"
+        );
       });
     });
 
@@ -189,18 +211,14 @@ describe("Pet Sythetic", () => {
             recipient.address,
             tokenId
           );
-
-        let synthesizedTokens = await pet.getSynthesizedTokens(tokenId);
-        synthesizedTokens.map((item) => {
-          expect(item.owner).to.be.equal(recipient.address);
-        });
+        expect(await pet.ownerOf(tokenId)).to.be.eq(recipient.address);
       });
 
       it("Error if direct transfer subToken that still on the PET", async () => {
         await expect(
           hat
             .connect(user)
-            .transferFrom(user.address, recipient.address, hatTokenId)
+            .transferFrom(user.address, recipient.address, petHatToken)
         ).to.be.reverted;
       });
     });
@@ -213,53 +231,45 @@ describe("Pet Sythetic", () => {
 
         await pet
           .connect(uriSetter)
-          .separateOne(_tokenId, _hatTokenId, hat.address, updateTokenURI);
+          .separateOne(_tokenId, _petHatToken, hat.address, updateTokenURI);
 
         await expect(
           hat
             .connect(userTwo)
-            .transferFrom(userTwo.address, user.address, _hatTokenId)
+            .transferFrom(userTwo.address, user.address, _petHatToken)
         ).not.to.be.reverted;
       });
       it("Change components with two tokens", async () => {
         //Init
-        expect(await hat.ownerOf(_hatTokenId)).to.equal(user.address);
+        expect(await hat.ownerOf(_petHatToken)).to.equal(user.address);
         await pet
           .connect(uriSetter)
-          .separateOne(tokenId, hatTokenId, hat.address, updateTokenURI);
+          .separateOne(tokenId, petHatToken, hat.address, updateTokenURI);
 
         //Expect
         await expect(
           hat
             .connect(user)
-            .transferFrom(user.address, userTwo.address, hatTokenId)
+            .transferFrom(user.address, userTwo.address, petHatToken)
         )
           .to.emit(hat, "Transfer")
-          .withArgs(user.address, userTwo.address, hatTokenId);
+          .withArgs(user.address, userTwo.address, petHatToken);
 
         await expect(
           pet
             .connect(uriSetter)
-            .combine(tokenId, [_hatTokenId], [hat.address], updateTokenURI)
+            .combine(tokenId, [_petHatToken], [hat.address], updateTokenURI)
         )
           .to.emit(hat, "Transfer")
-          .withArgs(user.address, pet.address, _hatTokenId);
-
-        // let subTokens = await pet.getSynthesizedTokens(tokenId);
-        // console.log(subTokens);
-        // subTokens.map((token) => {
-        //   expect([8002, 8003, 8004, 8005, 8006]).to.include(
-        //     token.id.toNumber()
-        //   );
-        // });
+          .withArgs(user.address, pet.address, _petHatToken);
       });
 
       it("Error if combine one component with duplicate attribute", async () => {
-        expect(await hat.ownerOf(_hatTokenId)).to.equal(user.address);
+        expect(await hat.ownerOf(_petHatToken)).to.equal(user.address);
         await expect(
           pet
             .connect(uriSetter)
-            .combine(tokenId, [_hatTokenId], [hat.address], updateTokenURI)
+            .combine(tokenId, [_petHatToken], [hat.address], updateTokenURI)
         ).to.be.revertedWith("duplicate sub token type");
       });
 
@@ -339,7 +349,7 @@ describe("Pet Sythetic", () => {
       await expect(
         pet
           .connect(uriSetter)
-          .combine(tokenId, [0], [cloth.address], updateTokenURI)
+          .combine(tokenId, [30], [cloth.address], updateTokenURI)
       ).not.to.be.reverted;
       const subTokens = await pet.getSynthesizedTokens(tokenId);
       expect(subTokens.length).to.be.eq(3);

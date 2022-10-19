@@ -16,4 +16,6 @@ interface IComponentBase is IERC721, IERC3664TextBased {
     ) external;
 
     function getCurrentTokenId() external returns (uint256);
+
+    function defaultMint() external;
 }

@@ -13,9 +13,9 @@ contract ComponentBase is ERC721Enumerable, ERC3664, ERC3664TextBased, Ownable {
     using Strings for uint256;
 
     uint8 public constant PRIMARY = 1;
-    uint256 public currentTokenId = 0;
-    string public primaryText;
+    uint256 public currentTokenId = 30;
 
+    string public primaryText;
     string public baseURI;
 
     struct subToken {
@@ -97,4 +97,6 @@ contract ComponentBase is ERC721Enumerable, ERC3664, ERC3664TextBased, Ownable {
     function getCurrentTokenId() public view returns (uint256) {
         return currentTokenId;
     }
+
+    function defaultMint() public virtual {}
 }

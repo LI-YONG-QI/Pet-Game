@@ -14,9 +14,11 @@ const uris = ["", "", ""];
 
 const tokenId = 0;
 const _tokenId = 1;
+const petHatToken = 0;
+const _petHatToken = 1;
 
-const hatTokenId = 0;
-const _hatTokenId = 1;
+const hatTokenId = 30;
+const _hatTokenId = 31;
 
 const hatBaseURI = "https://ipfs.io/ipfs/HatCID/";
 const baseURI = "https://ipfs.io/ipfs/PetCID/";
@@ -74,4 +76,6 @@ module.exports = {
   mockVrfAddress,
   VrfParams,
   VrfAddress,
+  petHatToken,
+  _petHatToken,
 };

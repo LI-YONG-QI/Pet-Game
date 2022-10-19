@@ -42,7 +42,7 @@
 
 每個 Component 為獨立出來的合約，每個 Component 同時也是一個獨立 ERC721 token，可進行交易、轉移等等功能，並且需繼承**ComponentBase**，符合其相關 interface 規範，以便 Pet 主合約的調用
 
-# 使用案例 Use Case
+# Use Case
 
 ## 一般情況 General Scenario
 
@@ -62,5 +62,4 @@
 ## Governance
 
 Pet 合約內的`setRoyalities()`版稅接受方需設為 Governance contract
-
-此為簡易的 DAO 合約，可以添加會員，並設定每位會員可獲得的版稅比例，可以藉由調用`processRoyalities()`來分配合約內現有資金
+此為簡易的 DAO 合約，`addMember()`可以添加會員，並設定每位會員可獲得的版稅比例，可以藉由調用`processRoyalities()`來分配合約內現有資金

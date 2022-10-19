@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { tokenId, hatBaseURI, emptyAddress } = require("../../helpers/Data");
+const { hatBaseURI, emptyAddress, hatTokenId } = require("../../helpers/Data");
 
 describe("Component of Hat test", () => {
   beforeEach(async () => {
@@ -13,13 +13,13 @@ describe("Component of Hat test", () => {
   describe("Basic test", async () => {
     it("Mint", async () => {
       await expect(hat.mint()).not.to.be.reverted;
-      expect(await hat.ownerOf(tokenId)).to.equal(owner.address);
-      expect(await hat.tokenURI(tokenId)).to.equal(
-        "https://ipfs.io/ipfs/HatCID/0.json"
+      expect(await hat.ownerOf(hatTokenId)).to.equal(owner.address);
+      expect(await hat.tokenURI(hatTokenId)).to.equal(
+        hatBaseURI + hatTokenId + ".json"
       );
-      expect(await hat.getCurrentTokenId()).to.equal(1);
+      expect(await hat.getCurrentTokenId()).to.equal(hatTokenId + 1);
 
-      let subToken = await hat.getSubTokens(tokenId);
+      let subToken = await hat.getSubTokens(hatTokenId);
       expect(subToken.primaryToken).to.be.equal(emptyAddress);
       expect(subToken.primaryTokenId).to.be.equal(0);
     });
